@@ -733,6 +733,7 @@ function renderCustomAttrList() {
 }
 
 // 언어 변경 함수
+// 언어 변경 함수
 function changeLanguage(lang) {
     currentLang = lang;
     localStorage.setItem("selectedLang", lang);
@@ -792,6 +793,17 @@ function changeLanguage(lang) {
     document.getElementById("how-step-1").innerHTML = translations[lang].howStep1;
     document.getElementById("how-step-2").innerHTML = translations[lang].howStep2;
     document.getElementById("how-step-3").innerHTML = translations[lang].howStep3;
+
+    // 로그인 후 화면(title-section)에 복제된 "이용 방법" 설명도 함께 갱신
+    const howHeading2 = document.getElementById("how-it-works-heading-2");
+    if (howHeading2) howHeading2.innerText = translations[lang].howItWorksHeading;
+    const howStep1_2 = document.getElementById("how-step-1-2");
+    if (howStep1_2) howStep1_2.innerHTML = translations[lang].howStep1;
+    const howStep2_2 = document.getElementById("how-step-2-2");
+    if (howStep2_2) howStep2_2.innerHTML = translations[lang].howStep2;
+    const howStep3_2 = document.getElementById("how-step-3-2");
+    if (howStep3_2) howStep3_2.innerHTML = translations[lang].howStep3;
+
     document.getElementById("footer-privacy").innerText = translations[lang].footerPrivacy;
     document.getElementById("footer-terms").innerText = translations[lang].footerTerms;
     document.getElementById("footer-contact").innerText = translations[lang].footerContact;
