@@ -68,13 +68,16 @@
 
             <!-- 크롤러/비로그인 방문자에게 보이는 실질적인 서비스 소개 콘텐츠 -->
             <div class="about-content">
-                <h2 id="about-heading">RentBest는 이런 서비스예요!</h2>
-                <p class="about-line" id="about-bullet-1">⚖️ <strong>나만의 기준 설정</strong>: 통근 시간, 보증금, 주차 등 내가 중요하게 생각하는
-                    항목에 무게를 둬요.</p>
-                <p class="about-line" id="about-bullet-2">📝 <strong>방문 기록 및 메모</strong>: 자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를
-                    입력해요.</p>
-                <p class="about-line" id="about-bullet-3">🏆 <strong>100점 만점 랭킹</strong>: 복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는
-                    최적의 집을 순위로 확인해요.</p>
+                <h2 id="about-heading"><span class="about-brand-font">RentBest</span>는 이런 서비스예요!</h2>
+                <p class="about-line" id="about-bullet-1"><span class="about-line-label">⚖️ <strong>나만의 기준
+                            설정</strong>:</span><span class="about-line-desc">통근 시간, 보증금, 주차 등 내가 중요하게 생각하는
+                        항목에 무게를 둬요.</span></p>
+                <p class="about-line" id="about-bullet-2"><span class="about-line-label">📝 <strong>방문 기록 및
+                            메모</strong>:</span><span class="about-line-desc">자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를
+                        입력해요.</span></p>
+                <p class="about-line" id="about-bullet-3"><span class="about-line-label">🏆 <strong>100점 만점
+                            랭킹</strong>:</span><span class="about-line-desc">복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는
+                        최적의 집을 순위로 확인해요.</span></p>
 
                 <h3 id="how-it-works-heading">이용 방법</h3>
                 <ol class="how-it-works-list">
@@ -95,7 +98,7 @@
         <!-- 로그인 후 타이틀/랜딩 페이지 -->
         <div class="section hero-section" id="title-section" style="display: none;">
             <div class="user-bar" id="user-bar" style="display:none;">
-                <span id="user-greeting"></span>
+                <span id="user-greeting" class="greeting-editable" onclick="editUsername()"></span>
                 <button class="signout-btn" id="signout-btn" onclick="signOutUser()">Sign out</button>
             </div>
 
@@ -195,6 +198,22 @@
             <div class="footer-copyright">© 2026 RentBest</div>
         </footer>
     </div>
+
+    <!-- 닉네임 변경 모달 (화면 중앙에 표시) -->
+    <div class="modal-overlay" id="username-modal-overlay" style="display:none;" onclick="closeUsernameModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <h3 id="username-modal-title">닉네임 변경</h3>
+            <div class="input-group" style="margin-top:14px; margin-bottom:0;">
+                <input type="text" id="username-modal-input" placeholder="새 닉네임 입력">
+            </div>
+            <div class="modal-btn-group">
+                <button type="button" class="modal-cancel-btn" id="username-modal-cancel"
+                    onclick="closeUsernameModal()">취소</button>
+                <button type="button" id="username-modal-save" onclick="saveUsernameFromModal()">저장</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="script.js"></script>
 </body>

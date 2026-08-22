@@ -157,6 +157,65 @@ function updateGreeting() {
     if (el && currentUser) el.textContent = translations[currentLang].greeting(currentUser.username || currentUser.email);
 }
 
+// 닉네임(username) 클릭 시 변경 모달 열기
+function editUsername() {
+    if (!currentUser) return;
+    const overlay = document.getElementById("username-modal-overlay");
+    const input = document.getElementById("username-modal-input");
+    if (!overlay || !input) return;
+    input.value = currentUser.username || "";
+    overlay.style.display = "flex";
+    setTimeout(() => {
+        input.focus();
+        input.select();
+    }, 0);
+}
+
+function closeUsernameModal() {
+    const overlay = document.getElementById("username-modal-overlay");
+    if (overlay) overlay.style.display = "none";
+}
+
+async function saveUsernameFromModal() {
+    const t = translations[currentLang];
+    const input = document.getElementById("username-modal-input");
+    const newName = input ? input.value.trim() : "";
+
+    if (!newName) {
+        alert(t.usernameEmptyAlert);
+        return;
+    }
+    if (newName === currentUser.username) {
+        closeUsernameModal();
+        return;
+    }
+    closeUsernameModal();
+    await updateUsername(newName);
+}
+
+async function updateUsername(newName) {
+    const t = translations[currentLang];
+
+    try {
+        const { error } = await sb.auth.updateUser({ data: { username: newName } });
+        if (error) throw error;
+    } catch (err) {
+        alert(err && err.message ? err.message : String(err));
+        return;
+    }
+
+    // profiles 테이블에도 반영 시도 (테이블/정책이 없어도 화면 갱신에는 영향 없음)
+    try {
+        await sb.from("profiles").upsert({ id: currentUser.id, username: newName }, { onConflict: "id" });
+    } catch (e) {
+        console.error("profiles upsert error:", e);
+    }
+
+    currentUser.username = newName;
+    updateGreeting();
+    alert(t.usernameUpdateSuccess);
+}
+
 // 현재 URL 해시 + 로그인 상태에 맞춰 화면 전환 (뒤로/앞으로가기 버튼 대응)
 function applyRoute() {
     if (!currentUser) {
@@ -308,6 +367,13 @@ const translations = {
         loginNote: "회원님의 데이터는 Supabase에 안전하게 저장됩니다.",
         signOutBtn: "로그아웃",
         greeting: (name) => `${name}님, 안녕하세요`,
+        editUsernamePrompt: "클릭하여 닉네임을 변경하세요.",
+        usernameEmptyAlert: "닉네임을 입력해 주세요.",
+        usernameUpdateSuccess: "닉네임이 변경되었습니다.",
+        usernameModalTitle: "닉네임 변경",
+        usernameModalPlaceholder: "새 닉네임 입력",
+        modalSaveBtn: "저장",
+        modalCancelBtn: "취소",
         loginBtn: "로그인",
         signupBtn: "회원가입",
         usernameLabel: "닉네임",
@@ -321,10 +387,10 @@ const translations = {
         authCheckEmail: "가입 확인 메일을 보냈어요. 메일함을 확인한 후 로그인해 주세요.",
         adLabel: "광고",
         adPlaceholder: "이 자리에 광고가 표시됩니다",
-        aboutHeading: "RentBest는 이런 서비스예요!",
-        aboutBullet1: "⚖️ <strong>나만의 기준 설정</strong>: 통근 시간, 보증금, 주차 등 내가 중요하게 생각하는 항목에 무게를 둬요.",
-        aboutBullet2: "📝 <strong>방문 기록 및 메모</strong>: 자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를 입력해요.",
-        aboutBullet3: "🏆 <strong>100점 만점 랭킹</strong>: 복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는 최적의 집을 순위로 확인해요.",
+        aboutHeading: "<span class=\"about-brand-font\">RentBest</span>는 이런 서비스예요!",
+        aboutBullet1: "<span class=\"about-line-label\">⚖️ <strong>나만의 기준 설정</strong>:</span><span class=\"about-line-desc\">통근 시간, 보증금, 주차 등 내가 중요하게 생각하는 항목에 무게를 둬요.</span>",
+        aboutBullet2: "<span class=\"about-line-label\">📝 <strong>방문 기록 및 메모</strong>:</span><span class=\"about-line-desc\">자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를 입력해요.</span>",
+        aboutBullet3: "<span class=\"about-line-label\">🏆 <strong>100점 만점 랭킹</strong>:</span><span class=\"about-line-desc\">복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는 최적의 집을 순위로 확인해요.</span>",
         howItWorksHeading: "이용 방법",
         howStep1: "<span class=\"step-label\"><strong>1. 나의 선호도 설정</strong></span><span class=\"step-desc\">통근시간, 가격, 관리비 등 기본 항목의 중요도를 1~5점으로 매기고, 필요하면 나만의 항목을 추가하거나 삭제할 수 있습니다.</span>",
         howStep2: "<span class=\"step-label\"><strong>2. 매물 점수 입력</strong></span><span class=\"step-desc\">실제로 둘러본 매물의 닉네임을 정하고, 같은 항목 기준으로 점수를 입력합니다.</span>",
@@ -389,6 +455,13 @@ const translations = {
         loginNote: "Your data is securely stored with Supabase.",
         signOutBtn: "Sign out",
         greeting: (name) => `Hi, ${name}`,
+        editUsernamePrompt: "Click to change your nickname.",
+        usernameEmptyAlert: "Please enter a username.",
+        usernameUpdateSuccess: "Your username has been updated.",
+        usernameModalTitle: "Change Username",
+        usernameModalPlaceholder: "Enter new username",
+        modalSaveBtn: "Save",
+        modalCancelBtn: "Cancel",
         loginBtn: "Log in",
         signupBtn: "Sign up",
         usernameLabel: "Username",
@@ -402,10 +475,10 @@ const translations = {
         authCheckEmail: "Check your email to confirm your account, then log in.",
         adLabel: "Advertisement",
         adPlaceholder: "Your ad could appear here",
-        aboutHeading: "What is RentBest?",
-        aboutBullet1: "⚖️ <strong>Your Personal Criteria</strong>: Set custom weightings for what matters most to you—whether it's rent, commute time, parking, or pet-friendliness.",
-        aboutBullet2: "📝 <strong>On-the-Spot Inspection Scoring</strong>: Rate each property instantly on your phone while walking through the door.",
-        aboutBullet3: "🏆 <strong>100-Point Match Score</strong>: No more guesswork. See a real-time, personalized leaderboard to secure your perfect home with confidence.",
+        aboutHeading: "What is <span class=\"about-brand-font\">RentBest</span>?",
+        aboutBullet1: "<span class=\"about-line-label\">⚖️ <strong>Your Personal Criteria</strong>:</span><span class=\"about-line-desc\">Set custom weightings for what matters most to you—whether it's rent, commute time, parking, or pet-friendliness.</span>",
+        aboutBullet2: "<span class=\"about-line-label\">📝 <strong>On-the-Spot Inspection Scoring</strong>:</span><span class=\"about-line-desc\">Rate each property instantly on your phone while walking through the door.</span>",
+        aboutBullet3: "<span class=\"about-line-label\">🏆 <strong>100-Point Match Score</strong>:</span><span class=\"about-line-desc\">No more guesswork. See a real-time, personalized leaderboard to secure your perfect home with confidence.</span>",
         howItWorksHeading: "How it works",
         howStep1: "<span class=\"step-label\"><strong>1. Set your preferences</strong></span><span class=\"step-desc\">Rate how important commute time, price, maintenance fees, and other criteria are to you (1-5), and add or remove criteria as needed.</span>",
         howStep2: "<span class=\"step-label\"><strong>2. Score each property</strong></span><span class=\"step-desc\">Give each place you visit a nickname and score it on the same criteria.</span>",
@@ -470,6 +543,13 @@ const translations = {
         loginNote: "您的数据将安全地保存在 Supabase 中。",
         signOutBtn: "退出登录",
         greeting: (name) => `你好，${name}`,
+        editUsernamePrompt: "点击更改昵称。",
+        usernameEmptyAlert: "请输入昵称。",
+        usernameUpdateSuccess: "昵称已更新。",
+        usernameModalTitle: "更改昵称",
+        usernameModalPlaceholder: "输入新昵称",
+        modalSaveBtn: "保存",
+        modalCancelBtn: "取消",
         loginBtn: "登录",
         signupBtn: "注册",
         usernameLabel: "昵称",
@@ -483,10 +563,10 @@ const translations = {
         authCheckEmail: "确认邮件已发送，请查收后再登录。",
         adLabel: "广告",
         adPlaceholder: "此处可展示广告",
-        aboutHeading: "RentBest 是一个什么样的服务？",
-        aboutBullet1: "⚖️ <strong>自定义核心标准</strong>：无论是通勤时间、租金/押金、周边治安还是朝向，由您决定各项指标的权重。",
-        aboutBullet2: "📝 <strong>看房实时打分</strong>：告别凌乱的备忘录！在实地看房（Inspection）时，随时随地用手机轻松记录每一套房源的分数。",
-        aboutBullet3: "🏆 <strong>100分制智能推荐</strong>：无需纠结，系统会根据您的标准自动计算出最佳房源排行榜，助您高效做出完美决策。",
+        aboutHeading: "<span class=\"about-brand-font\">RentBest</span> 是一个什么样的服务？",
+        aboutBullet1: "<span class=\"about-line-label\">⚖️ <strong>自定义核心标准</strong>：</span><span class=\"about-line-desc\">无论是通勤时间、租金/押金、周边治安还是朝向，由您决定各项指标的权重。</span>",
+        aboutBullet2: "<span class=\"about-line-label\">📝 <strong>看房实时打分</strong>：</span><span class=\"about-line-desc\">告别凌乱的备忘录！在实地看房（Inspection）时，随时随地用手机轻松记录每一套房源的分数。</span>",
+        aboutBullet3: "<span class=\"about-line-label\">🏆 <strong>100分制智能推荐</strong>：</span><span class=\"about-line-desc\">无需纠结，系统会根据您的标准自动计算出最佳房源排行榜，助您高效做出完美决策。</span>",
         howItWorksHeading: "使用方法",
         howStep1: "<span class=\"step-label\"><strong>1. 设置我的偏好</strong></span><span class=\"step-desc\">为通勤时间、价格、管理费等基本项目打出1~5分的重要程度，也可以按需添加或删除自定义项目。</span>",
         howStep2: "<span class=\"step-label\"><strong>2. 输入房源评分</strong></span><span class=\"step-desc\">为实际看过的房源起个昵称，并按相同项目打分。</span>",
@@ -518,6 +598,7 @@ window.onload = async function () {
     renderForms();
     renderCustomAttrList();
     setupAuthEnterKey();
+    setupUsernameModalKeys();
 
     // Supabase 세션 복원 (이미 로그인돼 있으면 자동으로 앱 화면까지 진입)
     const { data: { session } } = await sb.auth.getSession();
@@ -543,6 +624,21 @@ function setupAuthEnterKey() {
                 handleAuthSubmit();
             }
         });
+    });
+}
+
+// 닉네임 변경 모달 입력창: Enter=저장, Escape=취소
+function setupUsernameModalKeys() {
+    const input = document.getElementById("username-modal-input");
+    if (!input) return;
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            saveUsernameFromModal();
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            closeUsernameModal();
+        }
     });
 }
 
@@ -781,10 +877,22 @@ function changeLanguage(lang) {
     document.getElementById("login-tag").innerText = translations[lang].loginTag;
     document.getElementById("login-note").innerText = translations[lang].loginNote;
     document.getElementById("signout-btn").innerText = translations[lang].signOutBtn;
+    const greetingEl = document.getElementById("user-greeting");
+    if (greetingEl) greetingEl.title = translations[lang].editUsernamePrompt;
+
+    // 닉네임 변경 모달 텍스트
+    const modalTitleEl = document.getElementById("username-modal-title");
+    if (modalTitleEl) modalTitleEl.innerText = translations[lang].usernameModalTitle;
+    const modalInputEl = document.getElementById("username-modal-input");
+    if (modalInputEl) modalInputEl.placeholder = translations[lang].usernameModalPlaceholder;
+    const modalSaveEl = document.getElementById("username-modal-save");
+    if (modalSaveEl) modalSaveEl.innerText = translations[lang].modalSaveBtn;
+    const modalCancelEl = document.getElementById("username-modal-cancel");
+    if (modalCancelEl) modalCancelEl.innerText = translations[lang].modalCancelBtn;
     // 광고 슬롯 비활성화 중 (당분간 무료 서비스) — ad-slot을 다시 켜면 아래 두 줄도 함께 주석 해제
     // document.getElementById("ad-label").innerText = translations[lang].adLabel;
     // document.getElementById("ad-placeholder").innerText = translations[lang].adPlaceholder;
-    document.getElementById("about-heading").innerText = translations[lang].aboutHeading;
+    document.getElementById("about-heading").innerHTML = translations[lang].aboutHeading;
     document.getElementById("about-bullet-1").innerHTML = translations[lang].aboutBullet1;
     document.getElementById("about-bullet-2").innerHTML = translations[lang].aboutBullet2;
     document.getElementById("about-bullet-3").innerHTML = translations[lang].aboutBullet3;
