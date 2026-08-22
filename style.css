@@ -775,13 +775,11 @@ button:hover {
     padding-left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
     list-style: none;
 }
 
 .how-it-works-list li {
-    display: table;
-    width: 100%;
     font-size: 14px;
     line-height: 1.7;
     color: var(--ink-soft);
@@ -792,16 +790,12 @@ button:hover {
 }
 
 .step-label {
-    display: table-cell;
-    white-space: nowrap;
-    padding-right: 6px;
-    vertical-align: top;
+    display: block;
+    margin-bottom: 4px;
 }
 
 .step-desc {
-    display: table-cell;
-    width: 100%;
-    vertical-align: top;
+    display: block;
 }
 
 /* ===== Site footer ===== */

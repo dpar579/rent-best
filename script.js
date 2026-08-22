@@ -326,9 +326,9 @@ const translations = {
         aboutBullet2: "📝 <strong>방문 기록 및 메모</strong>: 자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를 입력해요.",
         aboutBullet3: "🏆 <strong>100점 만점 랭킹</strong>: 복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는 최적의 집을 순위로 확인해요.",
         howItWorksHeading: "이용 방법",
-        howStep1: "<span class=\"step-label\"><strong>1. 나의 선호도 설정</strong> —</span><span class=\"step-desc\">통근시간, 가격, 관리비 등 기본 항목의 중요도를 1~5점으로 매기고, 필요하면 나만의 항목을 추가하거나 삭제할 수 있습니다.</span>",
-        howStep2: "<span class=\"step-label\"><strong>2. 매물 점수 입력</strong> —</span><span class=\"step-desc\">실제로 둘러본 매물의 닉네임을 정하고, 같은 항목 기준으로 점수를 입력합니다.</span>",
-        howStep3: "<span class=\"step-label\"><strong>3. 랭킹 확인</strong> —</span><span class=\"step-desc\">가중치와 점수를 곱해 계산한 총점으로 매물들의 순위가 자동으로 정리되어, 로그인할 때마다 첫 화면에서 바로 확인할 수 있습니다.</span>",
+        howStep1: "<span class=\"step-label\"><strong>1. 나의 선호도 설정</strong></span><span class=\"step-desc\">통근시간, 가격, 관리비 등 기본 항목의 중요도를 1~5점으로 매기고, 필요하면 나만의 항목을 추가하거나 삭제할 수 있습니다.</span>",
+        howStep2: "<span class=\"step-label\"><strong>2. 매물 점수 입력</strong></span><span class=\"step-desc\">실제로 둘러본 매물의 닉네임을 정하고, 같은 항목 기준으로 점수를 입력합니다.</span>",
+        howStep3: "<span class=\"step-label\"><strong>3. 랭킹 확인</strong></span><span class=\"step-desc\">가중치와 점수를 곱해 계산한 총점으로 매물들의 순위가 자동으로 정리되어, 로그인할 때마다 첫 화면에서 바로 확인할 수 있습니다.</span>",
         footerPrivacy: "개인정보처리방침",
         footerTerms: "이용약관",
         footerContact: "문의하기",
@@ -407,9 +407,9 @@ const translations = {
         aboutBullet2: "📝 <strong>On-the-Spot Inspection Scoring</strong>: Rate each property instantly on your phone while walking through the door.",
         aboutBullet3: "🏆 <strong>100-Point Match Score</strong>: No more guesswork. See a real-time, personalized leaderboard to secure your perfect home with confidence.",
         howItWorksHeading: "How it works",
-        howStep1: "<span class=\"step-label\"><strong>1. Set your preferences</strong> —</span><span class=\"step-desc\">Rate how important commute time, price, maintenance fees, and other criteria are to you (1-5), and add or remove criteria as needed.</span>",
-        howStep2: "<span class=\"step-label\"><strong>2. Score each property</strong> —</span><span class=\"step-desc\">Give each place you visit a nickname and score it on the same criteria.</span>",
-        howStep3: "<span class=\"step-label\"><strong>3. Check the ranking</strong> —</span><span class=\"step-desc\">Your weights and scores are multiplied into a total score, automatically ranking your properties on the home screen every time you log in.</span>",
+        howStep1: "<span class=\"step-label\"><strong>1. Set your preferences</strong></span><span class=\"step-desc\">Rate how important commute time, price, maintenance fees, and other criteria are to you (1-5), and add or remove criteria as needed.</span>",
+        howStep2: "<span class=\"step-label\"><strong>2. Score each property</strong></span><span class=\"step-desc\">Give each place you visit a nickname and score it on the same criteria.</span>",
+        howStep3: "<span class=\"step-label\"><strong>3. Check the ranking</strong></span><span class=\"step-desc\">Your weights and scores are multiplied into a total score, automatically ranking your properties on the home screen every time you log in.</span>",
         footerPrivacy: "Privacy Policy",
         footerTerms: "Terms of Service",
         footerContact: "Contact",
@@ -488,9 +488,9 @@ const translations = {
         aboutBullet2: "📝 <strong>看房实时打分</strong>：告别凌乱的备忘录！在实地看房（Inspection）时，随时随地用手机轻松记录每一套房源的分数。",
         aboutBullet3: "🏆 <strong>100分制智能推荐</strong>：无需纠结，系统会根据您的标准自动计算出最佳房源排行榜，助您高效做出完美决策。",
         howItWorksHeading: "使用方法",
-        howStep1: "<span class=\"step-label\"><strong>1. 设置我的偏好</strong> —</span><span class=\"step-desc\">为通勤时间、价格、管理费等基本项目打出1~5分的重要程度，也可以按需添加或删除自定义项目。</span>",
-        howStep2: "<span class=\"step-label\"><strong>2. 输入房源评分</strong> —</span><span class=\"step-desc\">为实际看过的房源起个昵称，并按相同项目打分。</span>",
-        howStep3: "<span class=\"step-label\"><strong>3. 查看排名</strong> —</span><span class=\"step-desc\">权重与评分相乘得出总分，房源排名会自动生成，每次登录都能在首页立即看到。</span>",
+        howStep1: "<span class=\"step-label\"><strong>1. 设置我的偏好</strong></span><span class=\"step-desc\">为通勤时间、价格、管理费等基本项目打出1~5分的重要程度，也可以按需添加或删除自定义项目。</span>",
+        howStep2: "<span class=\"step-label\"><strong>2. 输入房源评分</strong></span><span class=\"step-desc\">为实际看过的房源起个昵称，并按相同项目打分。</span>",
+        howStep3: "<span class=\"step-label\"><strong>3. 查看排名</strong></span><span class=\"step-desc\">权重与评分相乘得出总分，房源排名会自动生成，每次登录都能在首页立即看到。</span>",
         footerPrivacy: "隐私政策",
         footerTerms: "服务条款",
         footerContact: "联系我们",
@@ -732,7 +732,6 @@ function renderCustomAttrList() {
     }
 }
 
-// 언어 변경 함수
 // 언어 변경 함수
 function changeLanguage(lang) {
     currentLang = lang;
