@@ -299,10 +299,10 @@ function propertyRowHtml(c, lang, custom = false) {
     const label = custom ? escapeHtml(customLabel(c, lang)) : criterionLabel(lang, c);
     return `
         <label id="p-label-${c.id}">${label}${c.type === "binary" ? "" : translations[lang].scoreLabelSuffix}</label>
-        <div class="weight-buttons" id="p-container-${c.id}">
+        <div class="weight-buttons${c.type === "binary" ? " weight-buttons-binary" : ""}" id="p-container-${c.id}">
             ${c.type === "binary"
-            ? `<button type="button" class="w-btn" id="p-btn-yes-${c.id}" style="width: 55px !important;" onclick="selectScoreBinary('${c.id}', 5)">${translations[lang].yesText}</button>
-                   <button type="button" class="w-btn" id="p-btn-no-${c.id}" style="width: 55px !important;" onclick="selectScoreBinary('${c.id}', 1)">${translations[lang].noText}</button>`
+            ? `<button type="button" class="w-btn" id="p-btn-yes-${c.id}" style="width: 94px !important;" onclick="selectScoreBinary('${c.id}', 5)">${translations[lang].yesText}</button>
+                   <button type="button" class="w-btn" id="p-btn-no-${c.id}" style="width: 94px !important;" onclick="selectScoreBinary('${c.id}', 1)">${translations[lang].noText}</button>`
             : `<button type="button" class="w-btn" onclick="selectScore('${c.id}', 1)">1</button>
                    <button type="button" class="w-btn" onclick="selectScore('${c.id}', 2)">2</button>
                    <button type="button" class="w-btn" onclick="selectScore('${c.id}', 3)">3</button>
