@@ -687,6 +687,32 @@ button:hover {
     margin: 4px 0 14px;
 }
 
+.forgot-row {
+    text-align: right;
+    margin: -6px 0 12px;
+}
+
+.link-btn {
+    width: auto !important;
+    padding: 2px 0 !important;
+    background: transparent !important;
+    color: var(--ink-soft) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-decoration: underline;
+    border-radius: 0 !important;
+}
+
+.link-btn:hover {
+    background: transparent !important;
+    color: var(--accent) !important;
+}
+
+.auth-message.is-info {
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+}
+
 .login-note {
     margin: 14px 0 0;
     font-size: 11px;

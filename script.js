@@ -22,6 +22,14 @@ let preferenceOpen = false;
 let propertyOpen = false;
 const APP_ROUTE = "#/app";
 
+// 비밀번호 재설정 메일 링크로 돌아온 경우 URL 해시에 type=recovery 가 들어 있다.
+// Supabase 클라이언트가 해시를 정리하기 전에 미리 기억해 둔다.
+let pendingPasswordRecovery = /[#&?]type=recovery\b/.test(location.hash);
+// 만료/잘못된 링크라면 해시에 error_code 가 들어 있다.
+const recoveryLinkError = /[#&?]error_code=/.test(location.hash)
+    ? (new URLSearchParams(location.hash.replace(/^#/, "")).get("error_description") || "")
+    : "";
+
 // ===== Supabase 연동 (회원가입/로그인 + 데이터 저장) =====
 // TODO: 아래 SUPABASE_URL을 본인 프로젝트의 Project URL로 바꿔주세요.
 // (Supabase 대시보드 > Project Settings > API > Project URL, 형식: https://xxxxxxxx.supabase.co)
@@ -43,13 +51,90 @@ function switchAuthMode(mode) {
     document.getElementById("auth-submit-btn").innerText = mode === "signup"
         ? translations[currentLang].signupBtn
         : translations[currentLang].loginBtn;
+    document.getElementById("forgot-row").style.display = mode === "signup" ? "none" : "block";
     hideAuthMessage();
 }
 
-function showAuthMessage(msg) {
+function showAuthMessage(msg, isInfo = false) {
     const el = document.getElementById("auth-error");
     el.textContent = msg;
+    el.classList.toggle("is-info", isInfo);
     el.style.display = "block";
+}
+
+// ===== 비밀번호 재설정 =====
+// 1) "비밀번호를 잊으셨나요?" 클릭 → 입력한 이메일로 재설정 링크 발송
+async function handleForgotPassword() {
+    hideAuthMessage();
+    const t = translations[currentLang];
+    const email = document.getElementById("auth-email").value.trim();
+    if (!email) {
+        showAuthMessage(t.resetNeedEmail);
+        document.getElementById("auth-email").focus();
+        return;
+    }
+
+    const btn = document.getElementById("forgot-password-btn");
+    btn.disabled = true;
+    try {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: location.origin + location.pathname
+        });
+        if (error) throw error;
+        // 가입 여부와 관계없이 동일한 문구를 보여준다 (계정 존재 여부 노출 방지).
+        showAuthMessage(t.resetEmailSent, true);
+    } catch (err) {
+        showAuthMessage(err && err.message ? err.message : String(err));
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// 2) 메일 링크로 돌아오면 새 비밀번호 입력 모달을 띄운다.
+function openResetModal() {
+    const overlay = document.getElementById("reset-modal-overlay");
+    if (!overlay) return;
+    document.getElementById("reset-new-password").value = "";
+    document.getElementById("reset-confirm-password").value = "";
+    const err = document.getElementById("reset-error");
+    err.style.display = "none";
+    overlay.style.display = "flex";
+    setTimeout(() => document.getElementById("reset-new-password").focus(), 0);
+}
+
+function closeResetModal() {
+    const overlay = document.getElementById("reset-modal-overlay");
+    if (overlay) overlay.style.display = "none";
+    pendingPasswordRecovery = false;
+}
+
+function showResetError(msg) {
+    const el = document.getElementById("reset-error");
+    el.textContent = msg;
+    el.style.display = "block";
+}
+
+// 3) 새 비밀번호 저장
+async function submitNewPassword() {
+    const t = translations[currentLang];
+    const pw = document.getElementById("reset-new-password").value;
+    const pw2 = document.getElementById("reset-confirm-password").value;
+
+    if (pw.length < 6) return showResetError(t.resetPasswordTooShort);
+    if (pw !== pw2) return showResetError(t.resetPasswordMismatch);
+
+    const btn = document.getElementById("reset-modal-save");
+    btn.disabled = true;
+    try {
+        const { error } = await sb.auth.updateUser({ password: pw });
+        if (error) throw error;
+        closeResetModal();
+        alert(t.resetSuccess);
+    } catch (err) {
+        showResetError(err && err.message ? err.message : String(err));
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 function hideAuthMessage() {
@@ -385,6 +470,16 @@ const translations = {
         authMissingFields: "이메일과 비밀번호를 입력해 주세요.",
         authMissingUsername: "닉네임을 입력해 주세요.",
         authCheckEmail: "가입 확인 메일을 보냈어요. 메일함을 확인한 후 로그인해 주세요.",
+        forgotPassword: "비밀번호를 잊으셨나요?",
+        resetNeedEmail: "비밀번호를 재설정할 이메일을 먼저 입력해 주세요.",
+        resetEmailSent: "재설정 링크를 이메일로 보냈어요. 메일함(스팸함 포함)을 확인해 주세요.",
+        resetModalTitle: "새 비밀번호 설정",
+        resetNewPlaceholder: "새 비밀번호 (6자 이상)",
+        resetConfirmPlaceholder: "새 비밀번호 확인",
+        resetPasswordTooShort: "비밀번호는 6자 이상이어야 합니다.",
+        resetPasswordMismatch: "비밀번호가 일치하지 않습니다.",
+        resetSuccess: "비밀번호가 변경되었습니다.",
+        resetLinkInvalid: "재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해 주세요.",
         adLabel: "광고",
         adPlaceholder: "이 자리에 광고가 표시됩니다",
         aboutHeading: "<span class=\"about-brand-font\">RentBest</span>는 이런 서비스예요!",
@@ -473,6 +568,16 @@ const translations = {
         authMissingFields: "Please enter your email and password.",
         authMissingUsername: "Please enter a username.",
         authCheckEmail: "Check your email to confirm your account, then log in.",
+        forgotPassword: "Forgot password?",
+        resetNeedEmail: "Please enter your email first so we can send a reset link.",
+        resetEmailSent: "We've sent a reset link to your email. Please check your inbox (and spam folder).",
+        resetModalTitle: "Set a new password",
+        resetNewPlaceholder: "New password (min 6 characters)",
+        resetConfirmPlaceholder: "Confirm new password",
+        resetPasswordTooShort: "Password must be at least 6 characters.",
+        resetPasswordMismatch: "Passwords do not match.",
+        resetSuccess: "Your password has been updated.",
+        resetLinkInvalid: "This reset link has expired or is invalid. Please request a new one.",
         adLabel: "Advertisement",
         adPlaceholder: "Your ad could appear here",
         aboutHeading: "What is <span class=\"about-brand-font\">RentBest</span>?",
@@ -561,6 +666,16 @@ const translations = {
         authMissingFields: "请输入邮箱和密码。",
         authMissingUsername: "请输入昵称。",
         authCheckEmail: "确认邮件已发送，请查收后再登录。",
+        forgotPassword: "忘记密码？",
+        resetNeedEmail: "请先输入邮箱，以便我们发送重置链接。",
+        resetEmailSent: "重置链接已发送至您的邮箱，请查收（也请检查垃圾邮件）。",
+        resetModalTitle: "设置新密码",
+        resetNewPlaceholder: "新密码（至少6位）",
+        resetConfirmPlaceholder: "确认新密码",
+        resetPasswordTooShort: "密码至少需要6位。",
+        resetPasswordMismatch: "两次输入的密码不一致。",
+        resetSuccess: "密码已更新。",
+        resetLinkInvalid: "重置链接已过期或无效，请重新申请。",
         adLabel: "广告",
         adPlaceholder: "此处可展示广告",
         aboutHeading: "<span class=\"about-brand-font\">RentBest</span> 是一个什么样的服务？",
@@ -599,6 +714,7 @@ window.onload = async function () {
     renderCustomAttrList();
     setupAuthEnterKey();
     setupUsernameModalKeys();
+    setupResetModalKeys();
 
     // Supabase 세션 복원 (이미 로그인돼 있으면 자동으로 앱 화면까지 진입)
     const { data: { session } } = await sb.auth.getSession();
@@ -608,6 +724,13 @@ window.onload = async function () {
 
     // 초기 언어 적용
     changeLanguage(currentLang);
+
+    // 재설정 메일 링크로 들어왔다면 새 비밀번호 입력 모달 표시
+    if (pendingPasswordRecovery && session) {
+        openResetModal();
+    } else if (recoveryLinkError) {
+        showAuthMessage(translations[currentLang].resetLinkInvalid);
+    }
 
     // 현재 주소창 해시 + 로그인 상태에 맞는 화면 표시 (새로고침/북마크 대응)
     applyRoute();
@@ -642,8 +765,30 @@ function setupUsernameModalKeys() {
     });
 }
 
+// 재설정 모달 입력창: Enter=저장, Escape=취소
+function setupResetModalKeys() {
+    ["reset-new-password", "reset-confirm-password"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                submitNewPassword();
+            } else if (e.key === "Escape") {
+                e.preventDefault();
+                closeResetModal();
+            }
+        });
+    });
+}
+
 // Supabase 세션이 만료되거나 다른 탭에서 로그아웃한 경우 등을 감지
 sb.auth.onAuthStateChange((event) => {
+    // 재설정 링크로 돌아온 경우 (페이지 로드가 끝난 뒤라면 여기서 모달을 연다)
+    if (event === "PASSWORD_RECOVERY") {
+        pendingPasswordRecovery = true;
+        if (document.readyState === "complete") openResetModal();
+    }
     if (event === "SIGNED_OUT" && currentUser) {
         signOutUser();
     }
@@ -874,6 +1019,12 @@ function changeLanguage(lang) {
     document.getElementById("auth-password-label").innerText = translations[lang].passwordLabel;
     document.getElementById("auth-password").placeholder = translations[lang].passwordPlaceholder;
     document.getElementById("auth-submit-btn").innerText = authMode === "signup" ? translations[lang].signupBtn : translations[lang].loginBtn;
+    document.getElementById("forgot-password-btn").innerText = translations[lang].forgotPassword;
+    document.getElementById("reset-modal-title").innerText = translations[lang].resetModalTitle;
+    document.getElementById("reset-new-password").placeholder = translations[lang].resetNewPlaceholder;
+    document.getElementById("reset-confirm-password").placeholder = translations[lang].resetConfirmPlaceholder;
+    document.getElementById("reset-modal-save").innerText = translations[lang].modalSaveBtn;
+    document.getElementById("reset-modal-cancel").innerText = translations[lang].modalCancelBtn;
     document.getElementById("login-tag").innerText = translations[lang].loginTag;
     document.getElementById("login-note").innerText = translations[lang].loginNote;
     document.getElementById("signout-btn").innerText = translations[lang].signOutBtn;

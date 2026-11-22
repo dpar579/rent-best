@@ -59,6 +59,10 @@
                         <label id="auth-password-label">Password</label>
                         <input type="password" id="auth-password" placeholder="••••••••">
                     </div>
+                    <div class="forgot-row" id="forgot-row">
+                        <button type="button" class="link-btn" id="forgot-password-btn"
+                            onclick="handleForgotPassword()">Forgot password?</button>
+                    </div>
                     <p class="auth-message" id="auth-error" style="display:none;"></p>
                     <button type="button" id="auth-submit-btn" onclick="handleAuthSubmit()">Log in</button>
                 </div>
@@ -210,6 +214,26 @@
                 <button type="button" class="modal-cancel-btn" id="username-modal-cancel"
                     onclick="closeUsernameModal()">취소</button>
                 <button type="button" id="username-modal-save" onclick="saveUsernameFromModal()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 재설정 모달 (메일의 재설정 링크로 돌아왔을 때 표시) -->
+    <div class="modal-overlay" id="reset-modal-overlay" style="display:none;">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <h3 id="reset-modal-title">Set a new password</h3>
+            <div class="input-group" style="margin-top:14px; margin-bottom:10px;">
+                <input type="password" id="reset-new-password" placeholder="New password" autocomplete="new-password">
+            </div>
+            <div class="input-group" style="margin-top:0; margin-bottom:0;">
+                <input type="password" id="reset-confirm-password" placeholder="Confirm new password"
+                    autocomplete="new-password">
+            </div>
+            <p class="auth-message" id="reset-error" style="display:none; margin-top:12px;"></p>
+            <div class="modal-btn-group">
+                <button type="button" class="modal-cancel-btn" id="reset-modal-cancel"
+                    onclick="closeResetModal()">Cancel</button>
+                <button type="button" id="reset-modal-save" onclick="submitNewPassword()">Save</button>
             </div>
         </div>
     </div>
