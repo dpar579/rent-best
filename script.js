@@ -17,6 +17,7 @@ let currentLang = "ko";
 let editingId = null;
 let customCriteria = []; // 사용자 추가 항목
 let removedBuiltinIds = []; // 삭제된 기본 항목 ID 목록
+const MAX_PROPERTIES = 10; // 등록 가능한 매물 최대 개수
 const MAX_CRITERIA = 15;  // 기본 항목 + 커스텀 합산 최대 15개
 const PREF_ROUTE = "#/preferences";
 const ADD_ROUTE = "#/add";
@@ -518,6 +519,7 @@ const translations = {
         addAttrBinary: "Y/N형",
         addAttrBtn: "+ 추가",
         addAttrLimitReached: "항목은 최대 15개까지 추가할 수 있습니다.",
+        propertyLimitReached: "매물은 최대 10개까지 등록할 수 있습니다. 기존 매물을 삭제한 뒤 다시 시도해 주세요.",
         addAttrEmptyName: "항목명을 입력하세요.",
         minCriteriaAlert: "항목은 최소 1개 이상 있어야 합니다.",
         submitBtn: "매물 평가 및 저장",
@@ -621,6 +623,7 @@ const translations = {
         addAttrBinary: "Y/N",
         addAttrBtn: "+ Add",
         addAttrLimitReached: "You can add up to 15 attributes total.",
+        propertyLimitReached: "You can register up to 10 properties. Please delete an existing one and try again.",
         addAttrEmptyName: "Please enter an attribute name.",
         minCriteriaAlert: "At least 1 attribute must remain.",
         submitBtn: "Evaluate & Save",
@@ -724,6 +727,7 @@ const translations = {
         addAttrBinary: "是/否型",
         addAttrBtn: "+ 添加",
         addAttrLimitReached: "最多可添加15个属性。",
+        propertyLimitReached: "最多可登记10个房源。请先删除已有房源后再试。",
         addAttrEmptyName: "请输入属性名称。",
         minCriteriaAlert: "至少需要保留1个属性。",
         submitBtn: "评估并保存",
@@ -825,9 +829,15 @@ window.onload = async function () {
     setupResetModalKeys();
 
     // Supabase 세션 복원 (이미 로그인돼 있으면 자동으로 앱 화면까지 진입)
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-        await onSignedIn(session.user);
+    // 복원이 끝나기 전에는 로그인 화면이 잠깐 비치지 않도록 본문을 숨겨 둔다(auth-loading).
+    let session = null;
+    try {
+        ({ data: { session } } = await sb.auth.getSession());
+        if (session) {
+            await onSignedIn(session.user);
+        }
+    } finally {
+        document.body.classList.remove("auth-loading");
     }
 
     // 초기 언어 적용
@@ -1153,8 +1163,8 @@ function changeLanguage(lang) {
     const modalCancelEl = document.getElementById("username-modal-cancel");
     if (modalCancelEl) modalCancelEl.innerText = translations[lang].modalCancelBtn;
     // 광고 슬롯 비활성화 중 (당분간 무료 서비스) — ad-slot을 다시 켜면 아래 두 줄도 함께 주석 해제
-    // document.getElementById("ad-label").innerText = translations[lang].adLabel;
-    // document.getElementById("ad-placeholder").innerText = translations[lang].adPlaceholder;
+    document.getElementById("ad-label").innerText = translations[lang].adLabel;
+    document.getElementById("ad-placeholder").innerText = translations[lang].adPlaceholder;
     document.getElementById("about-heading").innerHTML = translations[lang].aboutHeading;
     document.getElementById("about-bullet-1").innerHTML = translations[lang].aboutBullet1;
     document.getElementById("about-bullet-2").innerHTML = translations[lang].aboutBullet2;
@@ -1232,6 +1242,10 @@ function goAddProperty() {
     // 선호도(가중치)가 아직 없으면 먼저 선호도 설정 화면으로 보낸다.
     if (!currentWeights || Object.keys(currentWeights).length === 0) {
         goPreferences();
+        return;
+    }
+    if (editingId === null && propertyList.length >= MAX_PROPERTIES) {
+        alert(translations[currentLang].propertyLimitReached);
         return;
     }
     location.hash = ADD_ROUTE;
@@ -1341,6 +1355,9 @@ async function deleteProperty(id) {
 
 // 매물 평가 실행 및 저장
 async function analyzeProperty() {
+    if (editingId === null && propertyList.length >= MAX_PROPERTIES) {
+        return alert(translations[currentLang].propertyLimitReached);
+    }
     const name = document.getElementById("prop-name").value.trim();
     if (!name) return alert(translations[currentLang].alertEnterName);
 

@@ -775,7 +775,7 @@ button:hover {
 
 /* ===== Ad slot ===== */
 .ad-slot {
-    margin-top: 22px;
+    margin-top: 30px;
     padding: 14px;
     border: 1px dashed var(--border);
     border-radius: 12px;
@@ -793,6 +793,10 @@ button:hover {
 }
 
 .ad-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
     font-size: 13px;
     color: var(--ink-soft);
 }
@@ -1408,4 +1412,10 @@ button:hover {
 /* 선호도 설정 / 매물 추가는 각각 별도 화면이라 아코디언 헤더는 숨긴다 */
 .accordion-toggle {
     display: none;
+}
+
+/* 로그인 세션 복원 중에는 로그인/홈 화면을 숨겨 화면 깜빡임을 막는다 */
+.auth-loading #login-section,
+.auth-loading #title-section {
+    visibility: hidden;
 }
