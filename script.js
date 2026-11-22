@@ -18,9 +18,8 @@ let editingId = null;
 let customCriteria = []; // 사용자 추가 항목
 let removedBuiltinIds = []; // 삭제된 기본 항목 ID 목록
 const MAX_CRITERIA = 15;  // 기본 항목 + 커스텀 합산 최대 15개
-let preferenceOpen = false;
-let propertyOpen = false;
-const APP_ROUTE = "#/app";
+const PREF_ROUTE = "#/preferences";
+const ADD_ROUTE = "#/add";
 
 // 비밀번호 재설정 메일 링크로 돌아온 경우 URL 해시에 type=recovery 가 들어 있다.
 // Supabase 클라이언트가 해시를 정리하기 전에 미리 기억해 둔다.
@@ -55,11 +54,27 @@ function switchAuthMode(mode) {
     hideAuthMessage();
 }
 
-function showAuthMessage(msg, isInfo = false) {
+// 번역 키(translations 의 키 이름)를 함께 넘기면, 메시지가 떠 있는 상태에서 언어를 바꿔도 즉시 번역된다.
+// 서버가 돌려준 오류 문구처럼 키가 없는 메시지는 그대로 표시한다.
+let authMessageKey = null;
+let authMessageIsInfo = false;
+
+function showAuthMessage(msg, isInfo = false, key = null) {
     const el = document.getElementById("auth-error");
+    authMessageKey = key;
+    authMessageIsInfo = isInfo;
     el.textContent = msg;
     el.classList.toggle("is-info", isInfo);
     el.style.display = "block";
+}
+
+// 언어 변경 시 현재 표시 중인 인증 메시지를 새 언어로 다시 그린다.
+function refreshAuthMessageLanguage() {
+    if (!authMessageKey) return;
+    const el = document.getElementById("auth-error");
+    if (!el || el.style.display === "none") return;
+    const text = translations[currentLang][authMessageKey];
+    if (text) el.textContent = text;
 }
 
 // ===== 비밀번호 재설정 =====
@@ -69,7 +84,7 @@ async function handleForgotPassword() {
     const t = translations[currentLang];
     const email = document.getElementById("auth-email").value.trim();
     if (!email) {
-        showAuthMessage(t.resetNeedEmail);
+        showAuthMessage(t.resetNeedEmail, false, "resetNeedEmail");
         document.getElementById("auth-email").focus();
         return;
     }
@@ -82,7 +97,7 @@ async function handleForgotPassword() {
         });
         if (error) throw error;
         // 가입 여부와 관계없이 동일한 문구를 보여준다 (계정 존재 여부 노출 방지).
-        showAuthMessage(t.resetEmailSent, true);
+        showAuthMessage(t.resetEmailSent, true, "resetEmailSent");
     } catch (err) {
         showAuthMessage(err && err.message ? err.message : String(err));
     } finally {
@@ -108,10 +123,22 @@ function closeResetModal() {
     pendingPasswordRecovery = false;
 }
 
-function showResetError(msg) {
+let resetErrorKey = null;
+
+function showResetError(msg, key = null) {
     const el = document.getElementById("reset-error");
+    resetErrorKey = key;
     el.textContent = msg;
     el.style.display = "block";
+}
+
+// 언어 변경 시 재설정 모달에 떠 있는 오류 문구도 새 언어로 다시 그린다.
+function refreshResetErrorLanguage() {
+    if (!resetErrorKey) return;
+    const el = document.getElementById("reset-error");
+    if (!el || el.style.display === "none") return;
+    const text = translations[currentLang][resetErrorKey];
+    if (text) el.textContent = text;
 }
 
 // 3) 새 비밀번호 저장
@@ -120,8 +147,8 @@ async function submitNewPassword() {
     const pw = document.getElementById("reset-new-password").value;
     const pw2 = document.getElementById("reset-confirm-password").value;
 
-    if (pw.length < 6) return showResetError(t.resetPasswordTooShort);
-    if (pw !== pw2) return showResetError(t.resetPasswordMismatch);
+    if (pw.length < 6) return showResetError(t.resetPasswordTooShort, "resetPasswordTooShort");
+    if (pw !== pw2) return showResetError(t.resetPasswordMismatch, "resetPasswordMismatch");
 
     const btn = document.getElementById("reset-modal-save");
     btn.disabled = true;
@@ -151,7 +178,7 @@ async function handleAuthSubmit() {
     const username = document.getElementById("auth-username").value.trim();
 
     if (!email || !password) {
-        showAuthMessage(t.authMissingFields);
+        showAuthMessage(t.authMissingFields, false, "authMissingFields");
         return;
     }
 
@@ -161,7 +188,7 @@ async function handleAuthSubmit() {
     try {
         if (authMode === "signup") {
             if (!username) {
-                showAuthMessage(t.authMissingUsername);
+                showAuthMessage(t.authMissingUsername, false, "authMissingUsername");
                 return;
             }
             const { data, error } = await sb.auth.signUp({
@@ -175,7 +202,7 @@ async function handleAuthSubmit() {
                 await onSignedIn(data.session.user);
             } else {
                 // "Confirm email" 설정이 켜져 있으면 세션이 바로 생기지 않는다.
-                showAuthMessage(t.authCheckEmail);
+                showAuthMessage(t.authCheckEmail, true, "authCheckEmail");
             }
         } else {
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -237,9 +264,43 @@ function showSignedInChrome() {
     updateGreeting();
 }
 
+// 이름에서 아바타에 표시할 이니셜을 만든다. ("Dabin Park" → "DP", "다빈" → "다")
+function initialsOf(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length >= 2) {
+        return (Array.from(parts[0])[0] + Array.from(parts[1])[0]).toUpperCase();
+    }
+    return Array.from(parts[0])[0].toUpperCase();
+}
+
+function formatToday(lang) {
+    const locales = { ko: "ko-KR", en: "en-AU", zh: "zh-CN" };
+    try {
+        return new Date().toLocaleDateString(locales[lang] || "en-AU", {
+            weekday: "long", year: "numeric", month: "long", day: "numeric"
+        });
+    } catch (e) {
+        return "";
+    }
+}
+
+// 배너의 사용자 영역(이름/아바타)과 홈 화면의 환영 문구를 갱신
 function updateGreeting() {
+    if (!currentUser) return;
+    const t = translations[currentLang];
+    const name = currentUser.username || currentUser.email;
+
     const el = document.getElementById("user-greeting");
-    if (el && currentUser) el.textContent = translations[currentLang].greeting(currentUser.username || currentUser.email);
+    if (el) el.textContent = name;
+
+    if (el) el.title = t.editUsernamePrompt;
+
+    const welcome = document.getElementById("welcome-title");
+    if (welcome) {
+        welcome.innerHTML = escapeHtml(t.welcomeBack(name))
+            + `<span class="welcome-date">${escapeHtml(formatToday(currentLang))}</span>`;
+    }
 }
 
 // 닉네임(username) 클릭 시 변경 모달 열기
@@ -303,6 +364,9 @@ async function updateUsername(newName) {
 
 // 현재 URL 해시 + 로그인 상태에 맞춰 화면 전환 (뒤로/앞으로가기 버튼 대응)
 function applyRoute() {
+    const siteNav = document.getElementById("site-nav");
+    if (siteNav) siteNav.style.display = currentUser ? "flex" : "none";
+
     if (!currentUser) {
         document.getElementById("login-section").style.display = "block";
         document.getElementById("title-section").style.display = "none";
@@ -313,14 +377,43 @@ function applyRoute() {
     }
 
     document.getElementById("login-section").style.display = "none";
-    const isAppView = location.hash === APP_ROUTE;
-    document.getElementById("title-section").style.display = isAppView ? "none" : "block";
-    document.getElementById("app-header").style.display = isAppView ? "block" : "none";
-    document.getElementById("step1-section").style.display = isAppView ? "block" : "none";
-    document.getElementById("step2-section").style.display = isAppView ? "block" : "none";
+    const isPrefView = location.hash === PREF_ROUTE;
+    const isAddView = location.hash === ADD_ROUTE;
+    const isHomeView = !isPrefView && !isAddView;
+    document.getElementById("title-section").style.display = isHomeView ? "block" : "none";
+    document.getElementById("app-header").style.display = isHomeView ? "none" : "block";
+    document.getElementById("step1-section").style.display = isPrefView ? "block" : "none";
+    document.getElementById("step2-section").style.display = isAddView ? "block" : "none";
+    updatePageTitle();
+
+    // 배너 메뉴의 현재 위치 표시
+    const navHome = document.getElementById("nav-home");
+    const navPref = document.getElementById("nav-pref");
+    const navAdd = document.getElementById("nav-add");
+    if (navHome) navHome.classList.toggle("active", isHomeView);
+    if (navPref) navPref.classList.toggle("active", isPrefView);
+    if (navAdd) navAdd.classList.toggle("active", isAddView);
+}
+
+// 선호도 설정 / 매물 추가 화면 상단 제목 (현재 언어 기준)
+function updatePageTitle() {
+    const el = document.getElementById("app-header");
+    if (!el) return;
+    const t = translations[currentLang];
+    if (location.hash === PREF_ROUTE) el.textContent = t.navSetWeighting;
+    else if (location.hash === ADD_ROUTE) el.textContent = t.navAddProperty;
 }
 
 window.addEventListener("hashchange", applyRoute);
+
+// 배너의 로고/Home 메뉴: 로그인 상태면 홈(랭킹) 화면으로 이동
+function goHome(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!currentUser) return;
+    location.hash = "";
+    applyRoute();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 function criterionLabel(lang, c) {
     return translations[lang].criteria[c.id] || c.label;
@@ -470,6 +563,11 @@ const translations = {
         authMissingFields: "이메일과 비밀번호를 입력해 주세요.",
         authMissingUsername: "닉네임을 입력해 주세요.",
         authCheckEmail: "가입 확인 메일을 보냈어요. 메일함을 확인한 후 로그인해 주세요.",
+        navHome: "홈",
+        navAddProperty: "매물 추가",
+        navSetWeighting: "선호도 설정",
+        welcomeBack: (name) => `${name}님, 다시 오신 걸 환영해요`,
+        emptyRanking: "아직 저장된 매물이 없어요. GO를 눌러 첫 매물을 추가해 보세요.",
         forgotPassword: "비밀번호를 잊으셨나요?",
         resetNeedEmail: "비밀번호를 재설정할 이메일을 먼저 입력해 주세요.",
         resetEmailSent: "재설정 링크를 이메일로 보냈어요. 메일함(스팸함 포함)을 확인해 주세요.",
@@ -568,6 +666,11 @@ const translations = {
         authMissingFields: "Please enter your email and password.",
         authMissingUsername: "Please enter a username.",
         authCheckEmail: "Check your email to confirm your account, then log in.",
+        navHome: "Home",
+        navAddProperty: "Add property",
+        navSetWeighting: "Set weighting",
+        welcomeBack: (name) => `Welcome back, ${name}`,
+        emptyRanking: "No properties saved yet. Press GO to add your first one.",
         forgotPassword: "Forgot password?",
         resetNeedEmail: "Please enter your email first so we can send a reset link.",
         resetEmailSent: "We've sent a reset link to your email. Please check your inbox (and spam folder).",
@@ -666,6 +769,11 @@ const translations = {
         authMissingFields: "请输入邮箱和密码。",
         authMissingUsername: "请输入昵称。",
         authCheckEmail: "确认邮件已发送，请查收后再登录。",
+        navHome: "首页",
+        navAddProperty: "添加房源",
+        navSetWeighting: "设置偏好",
+        welcomeBack: (name) => `欢迎回来，${name}`,
+        emptyRanking: "还没有保存的房源，点击出发按钮添加第一套吧。",
         forgotPassword: "忘记密码？",
         resetNeedEmail: "请先输入邮箱，以便我们发送重置链接。",
         resetEmailSent: "重置链接已发送至您的邮箱，请查收（也请检查垃圾邮件）。",
@@ -729,7 +837,7 @@ window.onload = async function () {
     if (pendingPasswordRecovery && session) {
         openResetModal();
     } else if (recoveryLinkError) {
-        showAuthMessage(translations[currentLang].resetLinkInvalid);
+        showAuthMessage(translations[currentLang].resetLinkInvalid, false, "resetLinkInvalid");
     }
 
     // 현재 주소창 해시 + 로그인 상태에 맞는 화면 표시 (새로고침/북마크 대응)
@@ -1006,9 +1114,6 @@ function changeLanguage(lang) {
         : translations[lang].submitBtn;
     document.getElementById("result-header").innerText = translations[lang].resultHeader;
 
-    document.getElementById("step1-toggle").setAttribute("aria-expanded", String(preferenceOpen));
-    document.getElementById("step2-toggle").setAttribute("aria-expanded", String(propertyOpen));
-
     // 로그인 화면 텍스트
     document.getElementById("auth-tab-login").innerText = translations[lang].loginBtn;
     document.getElementById("auth-tab-signup").innerText = translations[lang].signupBtn;
@@ -1020,6 +1125,13 @@ function changeLanguage(lang) {
     document.getElementById("auth-password").placeholder = translations[lang].passwordPlaceholder;
     document.getElementById("auth-submit-btn").innerText = authMode === "signup" ? translations[lang].signupBtn : translations[lang].loginBtn;
     document.getElementById("forgot-password-btn").innerText = translations[lang].forgotPassword;
+    // 상단 배너 메뉴
+    document.getElementById("nav-home").innerText = translations[lang].navHome;
+    document.getElementById("nav-pref").innerText = translations[lang].navSetWeighting;
+    document.getElementById("nav-add").innerText = translations[lang].navAddProperty;
+    updatePageTitle();
+    refreshAuthMessageLanguage();
+    refreshResetErrorLanguage();
     document.getElementById("reset-modal-title").innerText = translations[lang].resetModalTitle;
     document.getElementById("reset-new-password").placeholder = translations[lang].resetNewPlaceholder;
     document.getElementById("reset-confirm-password").placeholder = translations[lang].resetConfirmPlaceholder;
@@ -1053,6 +1165,12 @@ function changeLanguage(lang) {
     document.getElementById("how-step-3").innerHTML = translations[lang].howStep3;
 
     // 로그인 후 화면(title-section)에 복제된 "이용 방법" 설명도 함께 갱신
+    const aboutHeading2 = document.getElementById("about-heading-2");
+    if (aboutHeading2) aboutHeading2.innerHTML = translations[lang].aboutHeading;
+    ["1", "2", "3"].forEach((n) => {
+        const b = document.getElementById("about-bullet-" + n + "-2");
+        if (b) b.innerHTML = translations[lang]["aboutBullet" + n];
+    });
     const howHeading2 = document.getElementById("how-it-works-heading-2");
     if (howHeading2) howHeading2.innerText = translations[lang].howItWorksHeading;
     const howStep1_2 = document.getElementById("how-step-1-2");
@@ -1077,8 +1195,6 @@ function changeLanguage(lang) {
     }
     const addAttrBtnEl = document.querySelector(".add-attr-btn");
     if (addAttrBtnEl) addAttrBtnEl.innerText = translations[lang].addAttrBtn;
-    const step2Caret = document.getElementById("step2-caret");
-    if (step2Caret) step2Caret.textContent = propertyOpen ? "▴" : "▾";
 
     // 생성된 입력 폼 라벨 및 바이너리 버튼 다국어 즉시 업데이트 (기본 항목)
     [...criteria, ...customCriteria].forEach(c => {
@@ -1102,56 +1218,30 @@ function changeLanguage(lang) {
     updateRankingTable();
 }
 
-// 단계 이동 함수: "Go" 클릭 시 가중치가 이미 저장돼 있으면 1단계는 자동으로 접어두고
-// 곧바로 2단계(매물 점수 입력)로 진입한다.
-function startApp() {
+// 화면 이동: 선호도 설정 / 매물 추가 (주소창 해시로 구분, 뒤로가기 가능)
+function goPreferences() {
     if (!currentUser) return;
-
-    const step1 = document.getElementById("step1-section");
-    const step2 = document.getElementById("step2-section");
-    const hasWeights = currentWeights && Object.keys(currentWeights).length > 0;
-    const hasProperty = propertyList.length > 0;
-    const skipPreference = hasWeights || hasProperty;
-
-    if (hasWeights) loadSavedWeights(currentWeights);
-
-    preferenceOpen = !skipPreference;
-    propertyOpen = skipPreference;
-    step1.classList.toggle("is-collapsed", !preferenceOpen);
-    step2.classList.toggle("is-collapsed", !propertyOpen);
-    changePreferenceToggleLabel();
-
-    // 별개 페이지로 이동한 것처럼 주소창 해시를 변경 (뒤로가기로 타이틀 화면 복귀 가능)
-    location.hash = APP_ROUTE;
+    if (currentWeights && Object.keys(currentWeights).length > 0) loadSavedWeights(currentWeights);
+    location.hash = PREF_ROUTE;
     applyRoute();
-
-    const scrollTarget = skipPreference ? step2 : step1;
-    scrollTarget.scrollIntoView({ behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function changePreferenceToggleLabel() {
-    const header = document.getElementById("step1-header");
-    if (header) header.style.display = "inline";
-    const caret = document.getElementById("step1-caret");
-    if (caret) caret.textContent = preferenceOpen ? "▴" : "▾";
+function goAddProperty() {
+    if (!currentUser) return;
+    // 선호도(가중치)가 아직 없으면 먼저 선호도 설정 화면으로 보낸다.
+    if (!currentWeights || Object.keys(currentWeights).length === 0) {
+        goPreferences();
+        return;
+    }
+    location.hash = ADD_ROUTE;
+    applyRoute();
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function togglePreferenceSection() {
-    const section = document.getElementById("step1-section");
-    if (!section) return;
-    preferenceOpen = !preferenceOpen;
-    section.classList.toggle("is-collapsed", !preferenceOpen);
-    if (section.style.display === "none") section.style.display = "block";
-    changePreferenceToggleLabel();
-}
-
-function togglePropertySection() {
-    const section = document.getElementById("step2-section");
-    if (!section) return;
-    propertyOpen = !propertyOpen;
-    section.classList.toggle("is-collapsed", !propertyOpen);
-    if (section.style.display === "none") section.style.display = "block";
-    changePreferenceToggleLabel();
+// GO 버튼: 가중치가 이미 저장돼 있으면 매물 추가로, 아니면 선호도 설정으로 이동
+function startApp() {
+    goAddProperty();
 }
 
 function goToStep2() {
@@ -1165,18 +1255,7 @@ function goToStep2() {
 
     currentWeights = weights;
     savePreferences({ weights });
-
-    document.getElementById("step1-section").classList.add("is-collapsed");
-    preferenceOpen = false;
-    document.getElementById("step2-section").style.display = "block";
-    document.getElementById("step2-section").classList.remove("is-collapsed");
-    propertyOpen = true;
-    changePreferenceToggleLabel();
-    document.getElementById("step2-section").scrollIntoView({ behavior: "smooth" });
-}
-
-function goToStep1() {
-    togglePreferenceSection();
+    goAddProperty();
 }
 
 function loadSavedWeights(weights) {
@@ -1211,14 +1290,9 @@ function editProperty(id) {
 
     editingId = id;
 
-    // Show the score input step even when editing from the ranking on the title screen.
-    location.hash = APP_ROUTE;
+    // Show the score input screen even when editing from the ranking on the home screen.
+    location.hash = ADD_ROUTE;
     applyRoute();
-    document.getElementById("step1-section").classList.add("is-collapsed");
-    preferenceOpen = false;
-    document.getElementById("step2-section").classList.remove("is-collapsed");
-    propertyOpen = true;
-    changePreferenceToggleLabel();
 
     // 매물 이름 입력 필드에 대입
     document.getElementById("prop-name").value = prop.name;
@@ -1406,7 +1480,7 @@ function updateRankingTable() {
                 </div>
                 <div class="rank-card-score"><span class="score-tag">${scoreStr}</span></div>
             </div>`;
-    }).join("");
+    }).join("") || `<div class="empty-state">${escapeHtml(t.emptyRanking)}</div>`;
 
     const unlockBanner = document.getElementById("unlock-banner");
     const goBtn = document.getElementById("go-btn");
@@ -1425,7 +1499,8 @@ function updateRankingTable() {
         // ===== TEMP 끝 =====
     }
 
-    document.getElementById("result-section").style.display = propertyList.length ? "block" : "none";
+    // 랭킹 패널은 항상 표시하고, 매물이 없으면 안내 문구를 보여준다.
+    document.getElementById("result-section").style.display = "block";
 }
 
 // 프리미엄 기능 잠금 해제

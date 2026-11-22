@@ -16,19 +16,43 @@
     <meta name="description"
         content="RentBest는 전월세 매물을 비교할 때 나만의 기준(가중치)으로 점수를 매겨 객관적인 랭킹을 만들어주는 의사결정 도구입니다. 통근시간, 가격, 관리비 등 항목별 중요도를 직접 설정하고, 여러 매물을 한눈에 비교해보세요.">
     <title>RentBest</title>
+    <link rel="icon" type="image/png" href="icons/icon128.png">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="container">
-        <!-- 언어 선택 바 (Language Selector) -->
-        <div class="lang-selector">
-            <div class="site-brand">RentBest</div>
-            <button class="lang-btn" id="lang-ko" onclick="changeLanguage('ko')">한국어</button>
-            <button class="lang-btn" id="lang-en" onclick="changeLanguage('en')">English</button>
-            <button class="lang-btn" id="lang-zh" onclick="changeLanguage('zh')">中文</button>
-        </div>
+    <!-- 상단 배너 (로고 / 메뉴 / 언어 선택 / 사용자 영역) -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand" href="./" onclick="goHome(event)">
+                <span class="brand-text">RentBest</span>
+            </a>
 
+            <!-- 로그인 후에만 표시되는 메뉴 -->
+            <nav class="site-nav" id="site-nav" style="display:none;">
+                <button type="button" class="nav-link active" id="nav-home" onclick="goHome()">Home</button>
+                <button type="button" class="nav-link" id="nav-pref" onclick="goPreferences()">Set weighting</button>
+                <button type="button" class="nav-link" id="nav-add" onclick="goAddProperty()">Add property</button>
+            </nav>
+
+            <div class="header-right">
+                <!-- 언어 선택 바 (Language Selector) -->
+                <div class="lang-selector">
+                    <button class="lang-btn" id="lang-ko" onclick="changeLanguage('ko')">한국어</button>
+                    <button class="lang-btn" id="lang-en" onclick="changeLanguage('en')">English</button>
+                    <button class="lang-btn" id="lang-zh" onclick="changeLanguage('zh')">中文</button>
+                </div>
+
+                <!-- 로그인 후 사용자 영역 -->
+                <div class="user-pill" id="user-bar" style="display:none;">
+                    <span id="user-greeting" class="greeting-editable" onclick="editUsername()"></span>
+                    <button class="signout-btn" id="signout-btn" onclick="signOutUser()">Sign out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
         <!-- 0. 로그인 전 화면: 이메일/비밀번호 회원가입 및 로그인 (Supabase Auth) -->
         <div class="section hero-section login-section" id="login-section">
             <div class="card login-card">
@@ -49,7 +73,7 @@
                 <div class="auth-form">
                     <div class="input-group" id="auth-username-group" style="display:none;">
                         <label id="auth-username-label">Username</label>
-                        <input type="text" id="auth-username" placeholder="e.g. renter123">
+                        <input type="text" id="auth-username" maxlength="10" placeholder="e.g. renter123">
                     </div>
                     <div class="input-group">
                         <label id="auth-email-label">Email</label>
@@ -71,17 +95,19 @@
             </div>
 
             <!-- 크롤러/비로그인 방문자에게 보이는 실질적인 서비스 소개 콘텐츠 -->
-            <div class="about-content">
+            <div class="about-content wide">
                 <h2 id="about-heading"><span class="about-brand-font">RentBest</span>는 이런 서비스예요!</h2>
-                <p class="about-line" id="about-bullet-1"><span class="about-line-label">⚖️ <strong>나만의 기준
-                            설정</strong>:</span><span class="about-line-desc">통근 시간, 보증금, 주차 등 내가 중요하게 생각하는
-                        항목에 무게를 둬요.</span></p>
-                <p class="about-line" id="about-bullet-2"><span class="about-line-label">📝 <strong>방문 기록 및
-                            메모</strong>:</span><span class="about-line-desc">자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를
-                        입력해요.</span></p>
-                <p class="about-line" id="about-bullet-3"><span class="about-line-label">🏆 <strong>100점 만점
-                            랭킹</strong>:</span><span class="about-line-desc">복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는
-                        최적의 집을 순위로 확인해요.</span></p>
+                <div class="about-features">
+                    <p class="about-line" id="about-bullet-1"><span class="about-line-label">⚖️ <strong>나만의 기준
+                                설정</strong>:</span><span class="about-line-desc">통근 시간, 보증금, 주차 등 내가 중요하게 생각하는
+                            항목에 무게를 둬요.</span></p>
+                    <p class="about-line" id="about-bullet-2"><span class="about-line-label">📝 <strong>방문 기록 및
+                                메모</strong>:</span><span class="about-line-desc">자취방이나 전월세 집을 구경하면서 현장에서 바로 점수를
+                            입력해요.</span></p>
+                    <p class="about-line" id="about-bullet-3"><span class="about-line-label">🏆 <strong>100점 만점
+                                랭킹</strong>:</span><span class="about-line-desc">복잡하게 고민할 필요 없이, 나에게 가장 잘 맞는
+                            최적의 집을 순위로 확인해요.</span></p>
+                </div>
 
                 <h3 id="how-it-works-heading">이용 방법</h3>
                 <ol class="how-it-works-list">
@@ -97,21 +123,21 @@
             </div>
         </div>
 
-        <h1 id="app-header" style="display: none;">Renting TradeOff</h1>
+        <h1 id="app-header" style="display: none;"></h1>
 
         <!-- 로그인 후 타이틀/랜딩 페이지 -->
         <div class="section hero-section" id="title-section" style="display: none;">
-            <div class="user-bar" id="user-bar" style="display:none;">
-                <span id="user-greeting" class="greeting-editable" onclick="editUsername()"></span>
-                <button class="signout-btn" id="signout-btn" onclick="signOutUser()">Sign out</button>
+            <div class="welcome-row">
+                <div class="welcome-text">
+                    <h2 class="welcome-title" id="welcome-title"></h2>
+                    <div class="title-phrase">
+                        <span id="title-stress" class="stress-text">Zero Stress</span>, <span id="title-choice"
+                            class="choice-text">Best Choice</span>.
+                    </div>
+                </div>
+                <button id="go-btn" onclick="startApp()" class="go-btn">GO</button>
             </div>
 
-            <div class="title-phrase">
-                <span id="title-stress" class="stress-text">Zero Stress</span>, <span id="title-choice"
-                    class="choice-text">Best Choice</span>.
-            </div>
-            <button id="go-btn" onclick="startApp()" class="go-btn"
-                style="max-width: 180px; margin: 30px auto 0; display: block; font-size: 18px; padding: 14px; border-radius: 30px;">GO</button>
             <div id="unlock-banner" class="premium-banner" style="display: none; margin-top: 30px;">
                 <span class="banner-icon">✨</span>
                 <span id="unlock-banner-text" class="banner-text">More options? Unlock unlimited listings for 30 days
@@ -119,69 +145,78 @@
                 <button id="unlock-banner-btn" class="unlock-btn" onclick="unlockApp()">Unlock Now</button>
             </div>
 
-            <!-- 저장된 매물 랭킹: 첫 화면(랜딩)에 카드 형태로 노출 -->
-            <div class="result card-stack" id="result-section" style="display:none;">
-                <h2 id="result-header">📊 Property Ranking</h2>
-                <div id="ranking-cards"></div>
+            <div class="dashboard-grid">
+                <!-- 저장된 매물 랭킹: 첫 화면(랜딩)에 카드 형태로 노출 -->
+                <div class="panel result" id="result-section">
+                    <h2 id="result-header">📊 Property Ranking</h2>
+                    <div id="ranking-cards"></div>
+                </div>
+
+                <!-- 로그인 후 화면에도 이용방법 설명 노출 -->
             </div>
 
-            <!-- 로그인 후 화면에도 이용방법 설명 노출 -->
-            <div class="about-content" id="about-content-title">
+            <!-- 로그인 후 화면에도 로그인 전과 동일한 서비스 소개/이용방법 노출 -->
+            <div class="about-content wide" id="about-content-title">
+                <h2 id="about-heading-2"><span class="about-brand-font">RentBest</span>는 이런 서비스예요!</h2>
+                <div class="about-features">
+                    <p class="about-line" id="about-bullet-1-2"></p>
+                    <p class="about-line" id="about-bullet-2-2"></p>
+                    <p class="about-line" id="about-bullet-3-2"></p>
+                </div>
+
                 <h3 id="how-it-works-heading-2">이용 방법</h3>
                 <ol class="how-it-works-list">
-                    <li id="how-step-1-2"><span class="step-label"><strong>1. 나의 선호도 설정</strong></span><span
-                            class="step-desc">통근시간, 가격, 관리비 등 기본 항목의 중요도를 1~5점으로 매기고, 필요하면 나만의 항목을 추가하거나 삭제할 수
-                            있습니다.</span></li>
-                    <li id="how-step-2-2"><span class="step-label"><strong>2. 매물 점수 입력</strong></span><span
-                            class="step-desc">실제로 둘러본 매물의 닉네임을 정하고, 같은 항목 기준으로 점수를 입력합니다.</span></li>
-                    <li id="how-step-3-2"><span class="step-label"><strong>3. 랭킹 확인</strong></span><span
-                            class="step-desc">가중치와 점수를 곱해 계산한 총점으로 매물들의 순위가 자동으로 정리되어, 로그인할 때마다 첫 화면에서 바로 확인할 수
-                            있습니다.</span></li>
+                    <li id="how-step-1-2"></li>
+                    <li id="how-step-2-2"></li>
+                    <li id="how-step-3-2"></li>
                 </ol>
             </div>
         </div>
 
-        <div class="section accordion-section card" id="step1-section" style="display: none;">
-            <button type="button" class="accordion-toggle" id="step1-toggle" onclick="togglePreferenceSection()">
-                <span id="step1-header">1. 나의 선호도 설정 (Weighting: 1~5)</span>
-                <span class="accordion-caret" id="step1-caret">▾</span>
-            </button>
-            <div id="weighting-form">
-            </div>
-            <!-- 커스텀 항목 추가 UI (선호도 설정 화면에서만 관리) -->
-            <div class="add-attr-section">
-                <div class="add-attr-title">
-                    <span>➕</span>
-                    <span id="add-attr-title-text">항목 추가 (최대 15개)</span>
+        <!-- 매물 입력 화면: 넓은 화면에서는 두 단계를 나란히 표시 -->
+        <div class="app-grid">
+            <div class="section accordion-section card" id="step1-section" style="display: none;">
+                <button type="button" class="accordion-toggle" id="step1-toggle">
+                    <span id="step1-header">1. 나의 선호도 설정 (Weighting: 1~5)</span>
+                    <span class="accordion-caret" id="step1-caret">▾</span>
+                </button>
+                <div id="weighting-form">
                 </div>
-                <div class="add-attr-row">
-                    <input type="text" id="new-attr-name" placeholder="항목명 입력">
-                    <select id="new-attr-type">
-                        <option value="rating">점수형 (1~5)</option>
-                        <option value="binary">Y/N형</option>
-                    </select>
-                    <button type="button" class="add-attr-btn" onclick="addCustomAttribute()">+ 추가</button>
+                <!-- 커스텀 항목 추가 UI (선호도 설정 화면에서만 관리) -->
+                <div class="add-attr-section">
+                    <div class="add-attr-title">
+                        <span>➕</span>
+                        <span id="add-attr-title-text">항목 추가 (최대 15개)</span>
+                    </div>
+                    <div class="add-attr-row">
+                        <input type="text" id="new-attr-name" placeholder="항목명 입력">
+                        <select id="new-attr-type">
+                            <option value="rating">점수형 (1~5)</option>
+                            <option value="binary">Y/N형</option>
+                        </select>
+                        <button type="button" class="add-attr-btn" onclick="addCustomAttribute()">+ 추가</button>
+                    </div>
                 </div>
+                <button id="step1-next-btn" onclick="goToStep2()" style="margin-top: 15px;">Next</button>
             </div>
-            <button id="step1-next-btn" onclick="goToStep2()" style="margin-top: 15px;">Next</button>
-        </div>
 
-        <div class="section accordion-section is-collapsed card" id="step2-section" style="display:none;">
-            <button type="button" class="accordion-toggle" id="step2-toggle" onclick="togglePropertySection()">
-                <span id="step2-header">2. 매물 점수 입력 (Score: 1~5)</span>
-                <span class="accordion-caret" id="step2-caret">▾</span>
-            </button>
-            <div class="input-group">
-                <label id="prop-name-label">매물 이름/닉네임</label>
-                <input type="text" id="prop-name" placeholder="예: 지역 이름">
-            </div>
-            <div id="property-form">
-            </div>
-            <div class="input-group">
-                <textarea id="prop-note" class="prop-note-box" placeholder="Note" rows="3"></textarea>
-            </div>
-            <div class="button-group">
-                <button id="submit-btn" onclick="analyzeProperty()" style="flex: 1;">매물 평가 및 저장</button>
+            <div class="section accordion-section card" id="step2-section" style="display:none;">
+                <button type="button" class="accordion-toggle" id="step2-toggle">
+                    <span id="step2-header">2. 매물 점수 입력 (Score: 1~5)</span>
+                    <span class="accordion-caret" id="step2-caret">▾</span>
+                </button>
+                <div class="input-group">
+                    <label id="prop-name-label">매물 이름/닉네임</label>
+                    <input type="text" id="prop-name" placeholder="예: 지역 이름">
+                </div>
+                <div id="property-form">
+                </div>
+                <div class="input-group">
+                    <textarea id="prop-note" class="prop-note-box" placeholder="Note" rows="3"></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="submit-btn" onclick="analyzeProperty()" style="flex: 1;">매물 평가 및 저장</button>
+                </div>
             </div>
         </div>
 
@@ -208,7 +243,7 @@
         <div class="modal-card" onclick="event.stopPropagation()">
             <h3 id="username-modal-title">닉네임 변경</h3>
             <div class="input-group" style="margin-top:14px; margin-bottom:0;">
-                <input type="text" id="username-modal-input" placeholder="새 닉네임 입력">
+                <input type="text" id="username-modal-input" maxlength="10" placeholder="새 닉네임 입력">
             </div>
             <div class="modal-btn-group">
                 <button type="button" class="modal-cancel-btn" id="username-modal-cancel"
