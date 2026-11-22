@@ -2,6 +2,12 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <script src="consent.js"></script>
+    <meta name="google-adsense-account" content="ca-pub-3750271329855061">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3750271329855061"
+        crossorigin="anonymous"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G9V9LBL12G"></script>
     <script>
@@ -11,10 +17,9 @@
 
         gtag('config', 'G-G9V9LBL12G');
     </script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="RentBest Terms of Service - a free analytical tool for comparing rental properties.">
+        content="RentBest Terms of Service - terms for using RentBest, including advertising and paid features.">
     <title>Terms of Service | RentBest</title>
     <link rel="icon" type="image/png" href="icons/icon128.png">
     <link rel="stylesheet" href="style.css">
@@ -28,7 +33,12 @@
             </a>
             <div class="header-right">
                 <div class="lang-selector">
-                    <a href="index.html" class="lang-btn">← Home</a>
+                    <button class="lang-btn" id="lang-ko" onclick="setLegalLang('ko')">한국어</button>
+                    <button class="lang-btn" id="lang-en" onclick="setLegalLang('en')">English</button>
+                    <button class="lang-btn" id="lang-zh" onclick="setLegalLang('zh')">中文</button>
+                    <a href="index.html" class="lang-btn" data-lang="ko">← 홈</a>
+                    <a href="index.html" class="lang-btn on" data-lang="en">← Home</a>
+                    <a href="index.html" class="lang-btn" data-lang="zh">← 首页</a>
                 </div>
             </div>
         </div>
@@ -37,10 +47,108 @@
     <div class="container narrow">
 
         <div class="section hero-section" style="text-align:left;">
-            <h1 style="text-align:left; font-size:22px;">Terms of Service</h1>
-            <p style="color:var(--ink-soft); font-size:13px; margin-top:-8px;">
-                Effective Date: July 6, 2026
-            </p>
+            <div class="lang-block" data-lang="ko">
+                <h1 style="text-align:left; font-size:22px;">이용약관</h1>
+                <p style="color:var(--ink-soft); font-size:13px; margin-top:-8px;">
+                    시행일: 2026년 11월 22일
+                </p>
+
+            <div class="about-content" style="margin-top:10px;">
+
+                <p>
+                    본 이용약관("약관")은 RentBest의 이용에 적용됩니다. 계정을 만들거나 RentBest를 이용하시면 본 약관에 동의하신 것으로
+                    간주됩니다. 동의하지 않으시면 서비스를 이용하지 말아 주세요.
+                </p>
+
+                <h3>1. 서비스</h3>
+                <p>
+                    RentBest는 이용자가 정한 기준으로 전월세 매물을 비교할 수 있도록 돕는 분석 및 의사결정 도구입니다. 핵심 기능은 무료로
+                    제공되며 광고로 운영됩니다. 일부 추가 기능은 유료로 제공될 수 있습니다. 본 웹사이트가 생성하는 계산, 점수, 순위는 참고용
+                    정보일 뿐이며 금융, 법률 또는 부동산 전문 조언이 아닙니다.
+                </p>
+
+                <h3>2. 계정</h3>
+                <p>
+                    계정 생성 시 정확한 정보를 제공하고 로그인 정보를 안전하게 관리해야 합니다. 계정에서 이루어지는 모든 활동은 이용자의
+                    책임입니다. 무단 접근이 의심되면 즉시 알려 주세요.
+                </p>
+
+                <h3>3. 유료 기능 및 결제</h3>
+                <p>
+                    일부 기능(예: 등록 개수 확대, 일정 기간 이용 연장)은 구매하실 수 있습니다. 각 유료 기능의 가격, 범위 및 기간은 구매
+                    시점에 표시됩니다. 결제 화면에 별도로 명시되지 않는 한 구매는 일회성 결제이며 자동 갱신되지 않습니다. 결제는 제3자
+                    결제 대행사를 통해 처리되며, 해당 대행사의 이용에는 그 대행사의 약관이 적용됩니다. 가격은 변경될 수 있으나 이미 완료된
+                    구매에는 영향을 주지 않습니다.
+                </p>
+                <p>
+                    기간이 정해진 기능은 명시된 기간이 끝나면 만료되며 기본 무료 한도로 돌아갑니다. 기간이 끝나도 저장된 데이터는 유지되지만,
+                    무료 한도를 넘는 기능은 이용이 제한될 수 있습니다.
+                </p>
+
+                <h3>4. 환불</h3>
+                <p>
+                    유료 기능은 디지털 상품이며 즉시 활성화되므로, 기능이 해제된 이후에는 원칙적으로 환불되지 않습니다. 다만 호주
+                    소비자법(Australian Consumer Law)을 포함하여 관련 소비자 관련 법령에 따라 이용자가 가지는 권리는 배제되지 않습니다.
+                    구매와 관련해 문제가 있으시면 아래 이메일로 문의해 주세요.
+                </p>
+
+                <h3>5. 광고 및 제3자 콘텐츠</h3>
+                <p>
+                    RentBest는 Google AdSense 등을 통해 제3자 광고를 게재합니다. 저희는 광고의 내용이나 광고가 연결하는 웹사이트를
+                    통제하지 않으며, 제3자의 상품, 서비스 또는 사이트에 대해 책임지지 않습니다. 광고주와의 거래는 전적으로 이용자와 광고주
+                    사이의 문제입니다. 광고를 인위적으로 클릭하거나 광고 표시를 방해해서는 안 됩니다. 광고 데이터의 처리 방식은
+                    <a href="privacy.html">개인정보처리방침</a>을 참고해 주세요.
+                </p>
+
+                <h3>6. 이용자 콘텐츠 및 허용되는 이용</h3>
+                <p>
+                    이용자가 입력한 매물, 점수, 메모에 대한 소유권은 이용자에게 있습니다. 이용자는 서비스를 운영하기 위한 목적에 한하여 해당
+                    콘텐츠를 저장 및 처리할 수 있는 제한적 이용 권한을 저희에게 부여합니다. 무단 접근 시도, 서비스 방해 또는 과부하, 대량
+                    수집(스크래핑), 불법적이거나 유해한 콘텐츠 입력 등 서비스를 악용해서는 안 됩니다.
+                </p>
+
+                <h3>7. 이용 정지 및 해지</h3>
+                <p>
+                    이용자는 언제든지 RentBest 이용을 중단하고 계정 삭제를 요청할 수 있습니다. 본 약관을 위반하거나 서비스를 악용하는 경우
+                    이용을 정지하거나 종료할 수 있습니다. 또한 무료 또는 유료 기능을 포함하여 언제든지 기능을 변경하거나 중단할 수 있습니다.
+                </p>
+
+                <h3>8. 보증의 부인 및 책임의 제한</h3>
+                <p>
+                    서비스는 "있는 그대로" 및 "제공 가능한 범위 내에서" 제공됩니다. 매물이나 이용자 생성 콘텐츠의 정확성, 완전성, 신뢰성을
+                    보증하지 않습니다. 법이 허용하는 최대 범위에서 RentBest는 플랫폼 이용 또는 데이터 신뢰로 인해 발생하는 직접적,
+                    간접적 또는 결과적 손해에 대해 책임지지 않으며, 유료 기능과 관련한 청구에 대한 저희의 총 책임은 해당 기능에 대해
+                    지불하신 금액으로 제한됩니다. 본 약관의 어떤 내용도 법률상 배제하거나 제한할 수 없는 책임이나 소비자 보장을 배제하거나
+                    제한하지 않습니다.
+                </p>
+
+                <h3>9. 준거법</h3>
+                <p>
+                    본 약관은 법률 충돌 규정과 관계없이 호주 퀸즐랜드주의 법률에 따라 규율되고 해석됩니다.
+                </p>
+
+                <h3>10. 약관의 변경</h3>
+                <p>
+                    저희는 본 약관을 수시로 변경할 수 있습니다. 중요한 변경이 있는 경우 수정된 시행일과 함께 이 페이지에 게시합니다.
+                    변경 사항이 적용된 후 RentBest를 계속 이용하시면 변경된 약관에 동의하신 것으로 간주됩니다.
+                </p>
+
+                <h3>11. 문의</h3>
+                <p>
+                    본 약관에 대해 궁금한 점이 있으시면 아래로 연락해 주세요.
+                </p>
+                <ul style="color:var(--ink-soft); font-size:14px; line-height:1.7; padding-left:20px;">
+                    <li><strong>이메일:</strong> <a href="mailto:rentbest26@gmail.com">rentbest26@gmail.com</a></li>
+                </ul>
+
+            </div>
+            </div>
+
+            <div class="lang-block on" data-lang="en">
+                <h1 style="text-align:left; font-size:22px;">Terms of Service</h1>
+                <p style="color:var(--ink-soft); font-size:13px; margin-top:-8px;">
+                    Effective Date: November 22, 2026
+                </p>
 
             <div class="about-content" style="margin-top:10px;">
 
@@ -50,35 +158,93 @@
                     not use the service.
                 </p>
 
-                <h3>1. Free Educational &amp; Analytical Tool</h3>
+                <h3>1. The Service</h3>
                 <p>
-                    RentBest is provided as a 100% free analytical and decision-making utility. The calculations,
-                    scores, and rankings generated by this website are for informational purposes only and do not
-                    constitute financial, legal, or professional real estate advice.
+                    RentBest is an analytical and decision-making tool that helps you compare rental properties using
+                    your own criteria. Core features are offered free of charge and are supported by advertising.
+                    Certain additional features may be offered for a fee. The calculations, scores, and rankings
+                    generated by this website are for informational purposes only and do not constitute financial,
+                    legal, or professional real estate advice.
                 </p>
 
-                <h3>2. No Warranties &amp; Limitation of Liability</h3>
+                <h3>2. Accounts</h3>
+                <p>
+                    You must provide accurate information when creating an account and keep your login credentials
+                    secure. You are responsible for all activity under your account. Please notify us promptly if you
+                    suspect unauthorized access.
+                </p>
+
+                <h3>3. Paid Features &amp; Payments</h3>
+                <p>
+                    Some features (for example, increased listing limits or extended access for a set period) may be
+                    available for purchase. The price, scope, and duration of each paid feature are shown at the time
+                    of purchase. Unless stated otherwise at checkout, purchases are one-time payments and do not renew
+                    automatically. Payments are processed by a third-party payment provider, and your use of that
+                    provider is subject to its own terms. Prices may change, but changes will not affect purchases
+                    you have already completed.
+                </p>
+                <p>
+                    Time-limited features expire at the end of the stated period, after which the service returns to
+                    the standard free limits. When a period ends, your saved data is kept, but access to features
+                    beyond the free limits may be restricted.
+                </p>
+
+                <h3>4. Refunds</h3>
+                <p>
+                    Because paid features are digital and are activated immediately, purchases are generally
+                    non-refundable once the feature has been unlocked. This does not affect any rights you have under
+                    applicable consumer law, including the Australian Consumer Law, which cannot be excluded. If you
+                    experience a problem with a purchase, please contact us at the email below.
+                </p>
+
+                <h3>5. Advertising &amp; Third-Party Content</h3>
+                <p>
+                    RentBest displays third-party advertisements, including through Google AdSense. We do not control
+                    the content of these ads or the websites they link to, and we are not responsible for third-party
+                    products, services, or sites. Any dealings you have with advertisers are solely between you and
+                    them. You agree not to click on ads artificially or interfere with the display of ads. See our
+                    <a href="privacy.html">Privacy Policy</a> for how advertising data is handled.
+                </p>
+
+                <h3>6. Your Content &amp; Acceptable Use</h3>
+                <p>
+                    You keep ownership of the listings, scores, and notes you enter. You grant us a limited licence
+                    to store and process that content solely to operate the service for you. You agree not to misuse
+                    the service, including by attempting to gain unauthorized access, disrupting or overloading the
+                    service, scraping it at scale, or entering unlawful or harmful content.
+                </p>
+
+                <h3>7. Suspension &amp; Termination</h3>
+                <p>
+                    You may stop using RentBest and request deletion of your account at any time. We may suspend or
+                    terminate access if you breach these Terms or misuse the service. We may also modify or
+                    discontinue features at any time, including free or paid features.
+                </p>
+
+                <h3>8. No Warranties &amp; Limitation of Liability</h3>
                 <p>
                     The service is provided on an "AS IS" and "AS AVAILABLE" basis. We do not warrant the accuracy,
-                    completeness, or reliability of any listings or user-generated content. Under no circumstances
-                    shall RentBest be liable for any direct, indirect, or consequential losses arising from your use
-                    of the platform or reliance on its data.
+                    completeness, or reliability of any listings or user-generated content. To the maximum extent
+                    permitted by law, RentBest shall not be liable for any direct, indirect, or consequential losses
+                    arising from your use of the platform or reliance on its data, and our total liability for any
+                    claim relating to a paid feature is limited to the amount you paid for it. Nothing in these Terms
+                    excludes or limits any liability or consumer guarantee that cannot be excluded by law.
                 </p>
 
-                <h3>3. Governing Law</h3>
+                <h3>9. Governing Law</h3>
                 <p>
                     These Terms shall be governed by and construed in accordance with the laws of
                     Queensland, Australia, without regard to its conflict of law provisions.
                 </p>
 
-                <h3>4. Changes to These Terms</h3>
+                <h3>10. Changes to These Terms</h3>
                 <p>
                     We may update these Terms from time to time. If we make material changes, we will post the
                     updated Terms on this page with a revised Effective Date. Your continued use of RentBest after
                     changes take effect constitutes acceptance of the updated Terms.
                 </p>
 
-                <h3>5. Contact Us</h3>
+                <h3>11. Contact Us</h3>
                 <p>
                     If you have any questions about these Terms, please contact us at:
                 </p>
@@ -87,15 +253,115 @@
                 </ul>
 
             </div>
+            </div>
+
+            <div class="lang-block" data-lang="zh">
+                <h1 style="text-align:left; font-size:22px;">服务条款</h1>
+                <p style="color:var(--ink-soft); font-size:13px; margin-top:-8px;">
+                    生效日期:2026年11月22日
+                </p>
+
+            <div class="about-content" style="margin-top:10px;">
+
+                <p>
+                    本服务条款(“条款”)适用于您对 RentBest 的使用。创建账户或以其他方式使用 RentBest 即表示您同意受本条款约束。如果您不同意,请勿使用本服务。
+                </p>
+
+                <h3>1. 服务内容</h3>
+                <p>
+                    RentBest 是一款分析和决策工具,帮助您按照自己的标准比较租赁房源。核心功能免费提供,并由广告支持。部分附加功能可能需要付费。本网站生成的计算、评分和排名仅供参考,不构成金融、法律或专业房地产建议。
+                </p>
+
+                <h3>2. 账户</h3>
+                <p>
+                    创建账户时,您必须提供准确的信息并妥善保管登录凭证。您须对账户下的所有活动负责。如怀疑账户被未经授权访问,请及时通知我们。
+                </p>
+
+                <h3>3. 付费功能与付款</h3>
+                <p>
+                    部分功能(例如提高房源数量上限或在一定期限内延长使用)可能需要购买。每项付费功能的价格、范围和期限将在购买时显示。除非结账时另有说明,购买均为一次性付款,不会自动续费。付款由第三方支付服务商处理,您对该服务商的使用须遵守其自身条款。价格可能会调整,但不会影响您已完成的购买。
+                </p>
+                <p>
+                    有期限的功能在规定期限结束后到期,服务将恢复为标准免费额度。期限结束后,您保存的数据会被保留,但超出免费额度的功能访问可能受到限制。
+                </p>
+
+                <h3>4. 退款</h3>
+                <p>
+                    由于付费功能为数字商品且会立即开通,功能解锁后购买原则上不予退款。这不影响您依据适用的消费者法律(包括不可排除的《澳大利亚消费者法》)所享有的权利。如果您对购买有任何问题,请通过下方邮箱联系我们。
+                </p>
+
+                <h3>5. 广告与第三方内容</h3>
+                <p>
+                    RentBest 展示第三方广告,包括通过 Google AdSense 投放的广告。我们不控制这些广告的内容或其链接的网站,也不对第三方的产品、服务或网站负责。您与广告商之间的任何往来仅在您与广告商之间进行。您同意不人为点击广告或干扰广告的展示。有关广告数据的处理方式,请参阅我们的
+                    <a href="privacy.html">隐私政策</a>。
+                </p>
+
+                <h3>6. 您的内容与可接受的使用</h3>
+                <p>
+                    您保留对所输入的房源、评分和备注的所有权。您授予我们有限的许可,仅为向您运营本服务之目的存储和处理这些内容。您同意不滥用本服务,包括试图未经授权访问、干扰或使服务过载、大规模抓取,或输入非法或有害内容。
+                </p>
+
+                <h3>7. 暂停与终止</h3>
+                <p>
+                    您可以随时停止使用 RentBest 并申请删除账户。如果您违反本条款或滥用服务,我们可能会暂停或终止您的访问。我们也可能随时修改或停止任何功能,包括免费或付费功能。
+                </p>
+
+                <h3>8. 免责声明与责任限制</h3>
+                <p>
+                    本服务按“现状”和“可用”状态提供。我们不保证任何房源或用户生成内容的准确性、完整性或可靠性。在法律允许的最大范围内,RentBest 对因您使用本平台或依赖其数据而产生的任何直接、间接或后果性损失不承担责任,且我们就付费功能相关的任何索赔承担的总责任以您为该功能支付的金额为限。本条款中的任何内容均不排除或限制依法不能排除的任何责任或消费者保障。
+                </p>
+
+                <h3>9. 适用法律</h3>
+                <p>
+                    本条款受澳大利亚昆士兰州法律管辖并据其解释,但不适用其法律冲突规则。
+                </p>
+
+                <h3>10. 条款变更</h3>
+                <p>
+                    我们可能会不时更新本条款。如有重大变更,我们将把更新后的条款连同修订后的生效日期发布在本页面上。变更生效后您继续使用 RentBest,即表示您接受更新后的条款。
+                </p>
+
+                <h3>11. 联系我们</h3>
+                <p>
+                    如果您对本条款有任何疑问,请联系:
+                </p>
+                <ul style="color:var(--ink-soft); font-size:14px; line-height:1.7; padding-left:20px;">
+                    <li><strong>邮箱:</strong><a href="mailto:rentbest26@gmail.com">rentbest26@gmail.com</a></li>
+                </ul>
+
+            </div>
+            </div>
         </div>
 
         <footer class="site-footer">
-            <a href="index.html">Home</a>
-            <span class="footer-dot">·</span>
-            <a href="privacy.html">Privacy Policy</a>
+            <span class="" data-lang="ko"><a href="index.html">홈</a><span class="footer-dot"> · </span><a href="guide.html">가이드</a><span class="footer-dot"> · </span><a href="privacy.html">개인정보처리방침</a><span class="footer-dot"> · </span><a href="terms.html">이용약관</a><span class="footer-dot"> · </span><a href="#" onclick="openCookieSettings(); return false;">쿠키 설정</a></span>
+            <span class="on" data-lang="en"><a href="index.html">Home</a><span class="footer-dot"> · </span><a href="guide.html">Guides</a><span class="footer-dot"> · </span><a href="privacy.html">Privacy Policy</a><span class="footer-dot"> · </span><a href="terms.html">Terms of Service</a><span class="footer-dot"> · </span><a href="#" onclick="openCookieSettings(); return false;">Cookie settings</a></span>
+            <span class="" data-lang="zh"><a href="index.html">首页</a><span class="footer-dot"> · </span><a href="guide.html">指南</a><span class="footer-dot"> · </span><a href="privacy.html">隐私政策</a><span class="footer-dot"> · </span><a href="terms.html">服务条款</a><span class="footer-dot"> · </span><a href="#" onclick="openCookieSettings(); return false;">Cookie 设置</a></span>
             <div class="footer-copyright">© 2026 RentBest</div>
         </footer>
     </div>
+
+    <script>
+        // 메인 사이트와 같은 언어 설정(localStorage: selectedLang)을 공유한다.
+        var LEGAL_TITLES = {"ko":"이용약관 | RentBest","en":"Terms of Service | RentBest","zh":"服务条款 | RentBest"};
+        function setLegalLang(lang) {
+            if (!LEGAL_TITLES[lang]) lang = "en";
+            try { localStorage.setItem("selectedLang", lang); } catch (e) { }
+            document.documentElement.lang = lang;
+            document.title = LEGAL_TITLES[lang];
+            document.querySelectorAll("[data-lang]").forEach(function (el) {
+                el.classList.toggle("on", el.getAttribute("data-lang") === lang);
+            });
+            ["ko", "en", "zh"].forEach(function (l) {
+                var b = document.getElementById("lang-" + l);
+                if (b) b.classList.toggle("active", l === lang);
+            });
+            if (window.refreshCookieBannerLang) window.refreshCookieBannerLang();
+        }
+        var saved = "en";
+        try { saved = localStorage.getItem("selectedLang") || "en"; } catch (e) { }
+        setLegalLang(saved);
+    </script>
 </body>
 
 </html>

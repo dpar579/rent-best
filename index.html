@@ -2,6 +2,11 @@
 <html lang="en">
 
 <head>
+    <script src="consent.js"></script>
+    <meta name="google-adsense-account" content="ca-pub-3750271329855061">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3750271329855061"
+        crossorigin="anonymous"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G9V9LBL12G"></script>
     <script>
@@ -172,8 +177,8 @@
                 </ol>
             </div>
 
-            <!-- 광고 슬롯 (Google AdSense): 승인 후 .ad-placeholder 자리에 광고 코드를 넣는다 -->
-            <div class="ad-slot" id="ad-slot-home">
+            <!-- 광고 슬롯 (Google AdSense): 승인 전에는 숨김. 승인 후 script.js 의 ADS_ENABLED 를 true 로 바꾸고 .ad-placeholder 자리에 광고 코드를 넣는다 -->
+            <div class="ad-slot" id="ad-slot-home" style="display:none;">
                 <span class="ad-label" id="ad-label">Advertisement</span>
                 <div class="ad-placeholder" id="ad-placeholder">Your ad could appear here</div>
             </div>
@@ -235,11 +240,15 @@
 
         <!-- 사이트 푸터: 개인정보처리방침/이용약관/문의 -->
         <footer class="site-footer">
+            <a href="guide.html" id="footer-guide">가이드</a>
+            <span class="footer-dot">·</span>
             <a href="privacy.html" id="footer-privacy">개인정보처리방침</a>
             <span class="footer-dot">·</span>
             <a href="terms.html" id="footer-terms">이용약관</a>
             <span class="footer-dot">·</span>
             <a href="mailto:rentbest26@gmail.com" id="footer-contact">문의하기</a>
+            <span class="footer-dot">·</span>
+            <a href="#" id="footer-cookies" onclick="openCookieSettings(); return false;">쿠키 설정</a>
             <div class="footer-copyright">© 2026 RentBest</div>
         </footer>
     </div>

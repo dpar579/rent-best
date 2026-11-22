@@ -17,6 +17,7 @@ let currentLang = "ko";
 let editingId = null;
 let customCriteria = []; // 사용자 추가 항목
 let removedBuiltinIds = []; // 삭제된 기본 항목 ID 목록
+const ADS_ENABLED = false; // 구글 애드센스 승인 후 true 로 바꾸면 홈 화면 광고 박스가 보인다
 const MAX_PROPERTIES = 10; // 등록 가능한 매물 최대 개수
 const MAX_CRITERIA = 15;  // 기본 항목 + 커스텀 합산 최대 15개
 const PREF_ROUTE = "#/preferences";
@@ -593,6 +594,8 @@ const translations = {
         footerPrivacy: "개인정보처리방침",
         footerTerms: "이용약관",
         footerContact: "문의하기",
+        footerGuide: "가이드",
+        footerCookies: "쿠키 설정",
         criteria: {
             commute: "통근 시간",
             price: "가격",
@@ -697,6 +700,8 @@ const translations = {
         footerPrivacy: "Privacy Policy",
         footerTerms: "Terms of Service",
         footerContact: "Contact",
+        footerGuide: "Guides",
+        footerCookies: "Cookie settings",
         criteria: {
             commute: "Commute time",
             price: "Price",
@@ -801,6 +806,8 @@ const translations = {
         footerPrivacy: "隐私政策",
         footerTerms: "服务条款",
         footerContact: "联系我们",
+        footerGuide: "指南",
+        footerCookies: "Cookie 设置",
         criteria: {
             commute: "通勤时间",
             price: "价格",
@@ -820,6 +827,10 @@ const translations = {
 window.onload = async function () {
     // 저장된 언어 불러오기 (기본값: 영어) — 언어는 기기 설정으로 취급, 사용자별로 나누지 않음
     currentLang = localStorage.getItem("selectedLang") || "en";
+
+    // 승인 전에는 광고 박스를 숨긴다 (ADS_ENABLED)
+    const adSlot = document.getElementById("ad-slot-home");
+    if (adSlot) adSlot.style.display = ADS_ENABLED ? "" : "none";
 
     // 기본 폼(로그인 전 상태) 먼저 렌더링
     renderForms();
@@ -1193,6 +1204,9 @@ function changeLanguage(lang) {
     document.getElementById("footer-privacy").innerText = translations[lang].footerPrivacy;
     document.getElementById("footer-terms").innerText = translations[lang].footerTerms;
     document.getElementById("footer-contact").innerText = translations[lang].footerContact;
+    document.getElementById("footer-guide").innerText = translations[lang].footerGuide;
+    document.getElementById("footer-cookies").innerText = translations[lang].footerCookies;
+    if (window.refreshCookieBannerLang) window.refreshCookieBannerLang();
     updateGreeting();
 
     // 커스텀 항목 추가 UI 번역 업데이트
