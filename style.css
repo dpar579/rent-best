@@ -720,6 +720,57 @@ button:hover {
     background: var(--accent-soft);
 }
 
+/* ===== Guest mode ===== */
+.guest-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 12px;
+    color: #97a29d;
+    font-size: 12px;
+}
+
+.guest-divider::before,
+.guest-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.guest-btn {
+    background: transparent !important;
+    color: var(--accent) !important;
+    border: 1.5px solid var(--accent) !important;
+    font-weight: 700;
+}
+
+.guest-btn:hover {
+    background: var(--accent-soft) !important;
+}
+
+.guest-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.guest-banner-btn {
+    width: auto;
+    flex-shrink: 0;
+    padding: 7px 16px;
+    font-size: 13px;
+    border-radius: 20px;
+}
+
 .login-note {
     margin: 14px 0 0;
     font-size: 11px;

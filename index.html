@@ -96,6 +96,10 @@
                     <button type="button" id="auth-submit-btn" onclick="handleAuthSubmit()">Log in</button>
                 </div>
 
+                <div class="guest-divider"><span id="guest-or">or</span></div>
+                <button type="button" class="guest-btn" id="guest-btn" onclick="enterGuestMode()">Try it without
+                    signing up</button>
+
                 <p class="login-note" id="login-note">Your data is securely stored with Supabase.</p>
             </div>
 
@@ -141,6 +145,12 @@
                     </div>
                 </div>
                 <button id="go-btn" onclick="startApp()" class="go-btn">GO</button>
+            </div>
+
+            <div id="guest-banner" class="guest-banner" style="display: none;">
+                <span id="guest-banner-text">Guest mode</span>
+                <button type="button" id="guest-banner-btn" class="guest-banner-btn"
+                    onclick="leaveGuestForSignup()">Sign up</button>
             </div>
 
             <div id="unlock-banner" class="premium-banner" style="display: none; margin-top: 30px;">

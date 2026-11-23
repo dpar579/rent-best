@@ -43,6 +43,154 @@ let currentWeights = {};     // 현재 로그인한 사용자의 선호도 가�
 let isUnlocked = false;      // 현재 로그인한 사용자의 무제한 등록 잠금 해제 여부
 let authMode = "login";      // "login" | "signup"
 
+// ===== 게스트 모드 (로그인 없이 체험) =====
+// 게스트 데이터는 이 브라우저의 localStorage에만 저장된다. 가입하면 새 계정으로 옮겨 준다.
+let isGuest = false;
+const GUEST_KEY = "rentbest_guest_v1";
+const GUEST_MAX_PROPERTIES = 3; // 게스트는 매물 3개까지, 더 쓰려면 가입
+
+// 로그인했거나 게스트 모드이면 앱 화면을 쓸 수 있다.
+function appActive() {
+    return !!currentUser || isGuest;
+}
+
+function propertyLimit() {
+    return isGuest ? GUEST_MAX_PROPERTIES : MAX_PROPERTIES;
+}
+
+function readGuestData() {
+    try {
+        const raw = localStorage.getItem(GUEST_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function guestHasContent(g) {
+    return !!g && ((g.properties && g.properties.length) || (g.weights && Object.keys(g.weights).length));
+}
+
+function saveGuestData() {
+    if (!isGuest) return;
+    try {
+        localStorage.setItem(GUEST_KEY, JSON.stringify({
+            weights: currentWeights,
+            removedBuiltinIds,
+            customCriteria,
+            properties: propertyList
+        }));
+    } catch (e) {
+        console.error("guest save error:", e);
+    }
+}
+
+function applyGuestData() {
+    const g = readGuestData() || {};
+    currentWeights = g.weights || {};
+    removedBuiltinIds = g.removedBuiltinIds || [];
+    customCriteria = g.customCriteria || [];
+    propertyList = (g.properties || []).slice().sort((a, b) => b.score - a.score);
+    criteria = removedBuiltinIds.length
+        ? DEFAULT_CRITERIA.filter(c => !removedBuiltinIds.includes(c.id))
+        : DEFAULT_CRITERIA.slice();
+}
+
+function enterGuestMode() {
+    isGuest = true;
+    currentUser = null;
+    editingId = null;
+    applyGuestData();
+    renderForms();
+    renderCustomAttrList();
+    if (Object.keys(currentWeights).length) loadSavedWeights(currentWeights);
+    showSignedInChrome();
+    updateRankingTable();
+    location.hash = "";
+    applyRoute();
+    changeLanguage(currentLang);
+    window.scrollTo({ top: 0 });
+}
+
+// 게스트 → 가입 화면으로 이동. 게스트 데이터는 localStorage에 남겨 두었다가 가입/로그인 때 옮긴다.
+function resetLocalState() {
+    currentWeights = {};
+    isUnlocked = false;
+    removedBuiltinIds = [];
+    customCriteria = [];
+    criteria = DEFAULT_CRITERIA.slice();
+    propertyList = [];
+    editingId = null;
+    renderForms();
+    renderCustomAttrList();
+    updateRankingTable();
+}
+
+function leaveGuestForSignup() {
+    isGuest = false;
+    resetLocalState();
+    const bar = document.getElementById("user-bar");
+    if (bar) bar.style.display = "none";
+    switchAuthMode("signup");
+    location.hash = "";
+    applyRoute();
+    changeLanguage(currentLang);
+    window.scrollTo({ top: 0 });
+}
+
+// 게스트 한도(3개)에 걸렸을 때 가입을 안내한다. 한도에 걸렸으면 true.
+function propertyLimitBlocked() {
+    if (editingId !== null || propertyList.length < propertyLimit()) return false;
+    const t = translations[currentLang];
+    if (isGuest) {
+        if (confirm(t.guestLimitReached)) leaveGuestForSignup();
+    } else {
+        alert(t.propertyLimitReached);
+    }
+    return true;
+}
+
+// 게스트로 만든 데이터를 방금 가입/로그인한 계정으로 옮긴다.
+// 계정에 이미 데이터가 있으면 그쪽을 우선하고 게스트 데이터는 건드리지 않는다.
+async function migrateGuestData() {
+    const g = readGuestData();
+    if (!guestHasContent(g)) return;
+
+    try {
+        const { data: pref } = await sb.from("preferences").select("weights").eq("user_id", currentUser.id).maybeSingle();
+        const { count } = await sb.from("properties").select("id", { count: "exact", head: true }).eq("user_id", currentUser.id);
+        const hasWeights = pref && pref.weights && Object.keys(pref.weights).length > 0;
+        if (hasWeights || (count || 0) > 0) return;
+
+        const { error: prefError } = await sb.from("preferences").upsert({
+            user_id: currentUser.id,
+            weights: g.weights || {},
+            removed_builtin_ids: g.removedBuiltinIds || [],
+            custom_criteria: g.customCriteria || []
+        }, { onConflict: "user_id" });
+        if (prefError) throw prefError;
+
+        const rows = (g.properties || []).slice(0, MAX_PROPERTIES).map(p => ({
+            user_id: currentUser.id,
+            name: p.name,
+            scores: p.scores || {},
+            score: Number(p.score),
+            note: p.note || ""
+        }));
+        if (rows.length) {
+            let { error } = await sb.from("properties").insert(rows);
+            if (error && /note/i.test(error.message || "")) {
+                ({ error } = await sb.from("properties").insert(rows.map(({ note, ...rest }) => rest)));
+            }
+            if (error) throw error;
+        }
+        localStorage.removeItem(GUEST_KEY);
+    } catch (err) {
+        // 옮기기에 실패해도 게스트 데이터는 그대로 남겨 두어 잃어버리지 않게 한다.
+        console.error("guest migration error:", err);
+    }
+}
+
 // 로그인/회원가입 탭 전환
 function switchAuthMode(mode) {
     authMode = mode;
@@ -220,6 +368,7 @@ async function handleAuthSubmit() {
 
 // 로그인 성공 후 처리: 사용자 정보 확정 + DB에서 데이터 로드 + 화면 전환
 async function onSignedIn(user) {
+    isGuest = false;
     currentUser = {
         id: user.id,
         email: user.email,
@@ -231,6 +380,7 @@ async function onSignedIn(user) {
         if (data) currentUser.username = data.username;
     }
 
+    await migrateGuestData();
     await loadAllUserDataFromSupabase();
     renderForms();
     renderCustomAttrList();
@@ -241,6 +391,11 @@ async function onSignedIn(user) {
 }
 
 async function signOutUser() {
+    // 게스트의 헤더 버튼("가입하기")도 이 함수를 쓴다: 가입 화면으로 보낸다.
+    if (isGuest) {
+        leaveGuestForSignup();
+        return;
+    }
     await sb.auth.signOut();
     currentUser = null;
     currentWeights = {};
@@ -289,18 +444,23 @@ function formatToday(lang) {
 
 // 배너의 사용자 영역(이름/아바타)과 홈 화면의 환영 문구를 갱신
 function updateGreeting() {
-    if (!currentUser) return;
+    if (!appActive()) return;
     const t = translations[currentLang];
-    const name = currentUser.username || currentUser.email;
+    const name = isGuest ? t.guestName : (currentUser.username || currentUser.email);
 
     const el = document.getElementById("user-greeting");
-    if (el) el.textContent = name;
+    if (el) {
+        el.textContent = name;
+        el.title = isGuest ? "" : t.editUsernamePrompt;
+        el.classList.toggle("greeting-editable", !isGuest);
+    }
 
-    if (el) el.title = t.editUsernamePrompt;
+    const signoutBtn = document.getElementById("signout-btn");
+    if (signoutBtn) signoutBtn.innerText = isGuest ? t.guestSignupBtn : t.signOutBtn;
 
     const welcome = document.getElementById("welcome-title");
     if (welcome) {
-        welcome.innerHTML = escapeHtml(t.welcomeBack(name))
+        welcome.innerHTML = escapeHtml(isGuest ? t.guestWelcome : t.welcomeBack(name))
             + `<span class="welcome-date">${escapeHtml(formatToday(currentLang))}</span>`;
     }
 }
@@ -367,9 +527,12 @@ async function updateUsername(newName) {
 // 현재 URL 해시 + 로그인 상태에 맞춰 화면 전환 (뒤로/앞으로가기 버튼 대응)
 function applyRoute() {
     const siteNav = document.getElementById("site-nav");
-    if (siteNav) siteNav.style.display = currentUser ? "flex" : "none";
+    if (siteNav) siteNav.style.display = appActive() ? "flex" : "none";
 
-    if (!currentUser) {
+    const guestBanner = document.getElementById("guest-banner");
+    if (guestBanner) guestBanner.style.display = isGuest ? "flex" : "none";
+
+    if (!appActive()) {
         document.getElementById("login-section").style.display = "block";
         document.getElementById("title-section").style.display = "none";
         document.getElementById("app-header").style.display = "none";
@@ -411,7 +574,7 @@ window.addEventListener("hashchange", applyRoute);
 // 배너의 로고/Home 메뉴: 로그인 상태면 홈(랭킹) 화면으로 이동
 function goHome(e) {
     if (e && e.preventDefault) e.preventDefault();
-    if (!currentUser) return;
+    if (!appActive()) return;
     location.hash = "";
     applyRoute();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -596,6 +759,13 @@ const translations = {
         footerContact: "문의하기",
         footerGuide: "가이드",
         footerCookies: "쿠키 설정",
+        guestName: "게스트",
+        guestWelcome: "게스트 모드로 체험 중이에요",
+        guestSignupBtn: "가입하기",
+        guestOr: "또는",
+        guestTryBtn: "가입 없이 먼저 써보기",
+        guestBanner: "게스트 모드: 데이터는 이 브라우저에만 저장돼요. 무료로 가입하면 안전하게 보관하고 매물을 10개까지 등록할 수 있어요.",
+        guestLimitReached: "게스트는 매물을 3개까지 등록할 수 있어요. 무료로 가입하면 지금까지의 기록을 그대로 옮기고 10개까지 등록할 수 있어요. 가입 화면으로 이동할까요?",
         criteria: {
             commute: "통근 시간",
             price: "가격",
@@ -702,6 +872,13 @@ const translations = {
         footerContact: "Contact",
         footerGuide: "Guides",
         footerCookies: "Cookie settings",
+        guestName: "Guest",
+        guestWelcome: "You're trying RentBest as a guest",
+        guestSignupBtn: "Sign up",
+        guestOr: "or",
+        guestTryBtn: "Try it without signing up",
+        guestBanner: "Guest mode: your data is saved only in this browser. Sign up free to keep it safe and add up to 10 properties.",
+        guestLimitReached: "Guests can save up to 3 properties. Sign up free to keep everything you've added and save up to 10. Go to sign up?",
         criteria: {
             commute: "Commute time",
             price: "Price",
@@ -808,6 +985,13 @@ const translations = {
         footerContact: "联系我们",
         footerGuide: "指南",
         footerCookies: "Cookie 设置",
+        guestName: "访客",
+        guestWelcome: "您正在以访客身份体验 RentBest",
+        guestSignupBtn: "注册",
+        guestOr: "或",
+        guestTryBtn: "无需注册，先试用",
+        guestBanner: "访客模式：数据仅保存在此浏览器中。免费注册即可安全保存，并最多登记10套房源。",
+        guestLimitReached: "访客最多可保存3套房源。免费注册后可保留已有记录，并最多保存10套。是否前往注册？",
         criteria: {
             commute: "通勤时间",
             price: "价格",
@@ -846,6 +1030,15 @@ window.onload = async function () {
         ({ data: { session } } = await sb.auth.getSession());
         if (session) {
             await onSignedIn(session.user);
+        } else if (guestHasContent(readGuestData())) {
+            // 이전에 게스트로 쓰던 데이터가 있으면 이어서 보여 준다.
+            isGuest = true;
+            applyGuestData();
+            renderForms();
+            renderCustomAttrList();
+            if (Object.keys(currentWeights).length) loadSavedWeights(currentWeights);
+            showSignedInChrome();
+            updateRankingTable();
         }
     } finally {
         document.body.classList.remove("auth-loading");
@@ -973,6 +1166,10 @@ async function loadAllUserDataFromSupabase() {
 
 // preferences 행을 부분 갱신 (upsert)
 async function savePreferences(partial) {
+    if (isGuest) {
+        saveGuestData();
+        return;
+    }
     if (!currentUser) return;
     const payload = { user_id: currentUser.id, ...partial };
     const { error } = await sb.from("preferences").upsert(payload, { onConflict: "user_id" });
@@ -1160,7 +1357,11 @@ function changeLanguage(lang) {
     document.getElementById("reset-modal-cancel").innerText = translations[lang].modalCancelBtn;
     document.getElementById("login-tag").innerText = translations[lang].loginTag;
     document.getElementById("login-note").innerText = translations[lang].loginNote;
-    document.getElementById("signout-btn").innerText = translations[lang].signOutBtn;
+    document.getElementById("signout-btn").innerText = isGuest ? translations[lang].guestSignupBtn : translations[lang].signOutBtn;
+    document.getElementById("guest-or").innerText = translations[lang].guestOr;
+    document.getElementById("guest-btn").innerText = translations[lang].guestTryBtn;
+    document.getElementById("guest-banner-text").innerText = translations[lang].guestBanner;
+    document.getElementById("guest-banner-btn").innerText = translations[lang].guestSignupBtn;
     const greetingEl = document.getElementById("user-greeting");
     if (greetingEl) greetingEl.title = translations[lang].editUsernamePrompt;
 
@@ -1244,7 +1445,7 @@ function changeLanguage(lang) {
 
 // 화면 이동: 선호도 설정 / 매물 추가 (주소창 해시로 구분, 뒤로가기 가능)
 function goPreferences() {
-    if (!currentUser) return;
+    if (!appActive()) return;
     if (currentWeights && Object.keys(currentWeights).length > 0) loadSavedWeights(currentWeights);
     location.hash = PREF_ROUTE;
     applyRoute();
@@ -1252,16 +1453,13 @@ function goPreferences() {
 }
 
 function goAddProperty() {
-    if (!currentUser) return;
+    if (!appActive()) return;
     // 선호도(가중치)가 아직 없으면 먼저 선호도 설정 화면으로 보낸다.
     if (!currentWeights || Object.keys(currentWeights).length === 0) {
         goPreferences();
         return;
     }
-    if (editingId === null && propertyList.length >= MAX_PROPERTIES) {
-        alert(translations[currentLang].propertyLimitReached);
-        return;
-    }
+    if (propertyLimitBlocked()) return;
     location.hash = ADD_ROUTE;
     applyRoute();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1348,12 +1546,15 @@ function editProperty(id) {
 // 매물 삭제 함수
 async function deleteProperty(id) {
     if (confirm(translations[currentLang].confirmDelete)) {
-        const { error } = await sb.from("properties").delete().eq("id", id).eq("user_id", currentUser.id);
-        if (error) {
-            alert(error.message);
-            return;
+        if (!isGuest) {
+            const { error } = await sb.from("properties").delete().eq("id", id).eq("user_id", currentUser.id);
+            if (error) {
+                alert(error.message);
+                return;
+            }
         }
         propertyList = propertyList.filter(p => String(p.id) !== String(id));
+        saveGuestData();
 
         // 현재 삭제 중인 매물이 편집 중이던 항목이라면 편집 상태 초기화
         if (String(editingId) === String(id)) {
@@ -1369,9 +1570,7 @@ async function deleteProperty(id) {
 
 // 매물 평가 실행 및 저장
 async function analyzeProperty() {
-    if (editingId === null && propertyList.length >= MAX_PROPERTIES) {
-        return alert(translations[currentLang].propertyLimitReached);
-    }
+    if (propertyLimitBlocked()) return;
     const name = document.getElementById("prop-name").value.trim();
     if (!name) return alert(translations[currentLang].alertEnterName);
 
@@ -1424,7 +1623,19 @@ async function analyzeProperty() {
     submitBtn.disabled = true;
 
     try {
-        if (editingId !== null) {
+        if (isGuest) {
+            // 게스트: 서버 없이 이 브라우저에만 저장
+            if (editingId !== null) {
+                const prop = propertyList.find(p => String(p.id) === String(editingId));
+                if (prop) Object.assign(prop, { name, scores, score: Number(finalScore), note });
+                editingId = null;
+                document.getElementById("submit-btn").innerText = translations[currentLang].submitBtn;
+            } else {
+                propertyList.push({ id: "g" + Date.now(), name, scores, score: Number(finalScore), note });
+            }
+            // 게스트의 가중치도 함께 저장해 둔다 (goToStep2 에서 이미 저장되지만 안전하게 한 번 더)
+            saveGuestData();
+        } else if (editingId !== null) {
             // 편집 저장 모드
             let { error } = await sb.from("properties")
                 .update({ name, scores, score: Number(finalScore), note })
@@ -1476,6 +1687,7 @@ async function analyzeProperty() {
 
     // 리스트 정렬
     propertyList.sort((a, b) => b.score - a.score);
+    saveGuestData();
 
     document.getElementById("prop-name").value = "";
     document.getElementById("prop-note").value = "";
