@@ -1475,3 +1475,14 @@ button:hover {
 [data-lang]:not(.on) {
     display: none !important;
 }
+
+/* 언어 선택 버튼의 국기 아이콘 (SVG: Windows 에서는 이모지 국기가 글자로 보이므로) */
+.lang-btn .flag {
+    display: inline-block;
+    width: 18px;
+    height: 12px;
+    margin-right: 5px;
+    vertical-align: -1px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
